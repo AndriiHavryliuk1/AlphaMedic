@@ -1,0 +1,56 @@
+<div class="panel panel-default defaultMargin " ng-repeat="apo in data.Appointments">
+    <div class="panel-body">
+        <div class="row">
+            <div class="col-md-2">
+                <dl class="appointmentBlock">
+                    <dt>
+                        Appointment:
+                    </dt>
+                    <dd class="topMargin">
+                        <a href="#/appointmentInfo/{{apo.AppointmentId}}">{{apo.AppointmentId}}</a>
+                    </dd>
+                </dl>
+            </div>
+            <div class="col-md-2">
+                <dl class="appointmentBlock">
+                    <dt>
+                        Patient:
+                    </dt>
+                    <dd class="topMargin">
+                        <a href="#/patients/{{apo.PatientId}}">{{apo.PatientFullName}}</a>
+                    </dd>
+                </dl>
+            </div>
+            <div class="col-md-2">
+                <dl class="appointmentBlock">
+                    <dt>
+                        Date Time:
+                    </dt>
+                    <dd class="topMargin">
+                        {{apo.Date | date:'yyyy-MM-dd hh:mm'}}
+                    </dd>
+                </dl>
+            </div>
+            <div class="col-md-2">
+                <dl class="appointmentBlock">
+                    <dt>
+                        Duration:
+                    </dt>
+                    <dd class="topMargin">
+                        {{apo.Duration}}
+                    </dd>
+                </dl>
+            </div>
+            <div class="col-md-4">
+                <dl class="appointmentBlock">
+                    <dt>
+                        Appointment State:
+                    </dt>
+                    <dd class="topMargin">
+                        {{apo.State}}
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>

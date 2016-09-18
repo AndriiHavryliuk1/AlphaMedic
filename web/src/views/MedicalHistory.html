@@ -1,0 +1,181 @@
+<div class="container-fluid">
+    <div class="row">
+
+        <div class="col-lg-3 col-md-3 col-sm-3 ">
+
+            <div class="container-fluid">
+                <h3 class="text-center">{{Patient.FullName}}</h3>
+                <a href="">
+                    <img src={{Patient.URLImage}} class="img-responsive" alt="Patient`s photo" width="300" height="300">
+                </a>
+            </div>
+
+            <div class="container-fluid text-left">
+                <br>
+                <h4>Date Of Birth:
+                    <span class="label label-primary">{{Patient.DateOfBirth | date: "dd-MM-yyyy"}}</span>
+                </h4>
+                <h4>Blood Group:
+                    <span class="label label-primary">{{Patient.BloodGroup.Group}}</span>
+                </h4>
+            </div>
+
+            <div class="span4">
+                <br>
+                <label>Warning labels</label>
+                <ul class="list-group">
+                    <li class="list-group-item" ng-model="medicalHistory.WarningLabels" ng-repeat="wLabel in medicalHistory.WarningLabels">{{wLabel}}</label>
+            </ul>
+
+        </div>
+
+        <br>
+        <br>
+        <button  ng-show="isDoctor" class="btn btn-success btn-block btn-lg " ng-click="GoToAddNewProcedure()">Add new procedure</button>
+        <button ng-show="isDoctor" class="btn btn-success btn-block btn-lg" data-toggle="modal" data-target="#myModal">Add new warning label</button>
+
+        <!-- Modal -->
+        <div class="modal fade" id="myModal" role="dialog">
+            <div class="modal-dialog modal-md">
+                <div class="modal-content container-fluid">
+                    <div class="modal-header">
+                        <button class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title">New warning label</h4>
+                    </div>
+                    <br>
+                    <br>
+                    <div class="form-group">
+                        <div class="col-sm-8 col-sm-offset-2">
+                            <textarea class="form-control" rows="5" id="warning" ng-model="NewWarningLabel" placeholder="Enter your problem here..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-sm-4 col-sm-offset-4">
+                            <br>
+                            <button class="btn btn-primary btn-block" data-dismiss="modal" ng-click="AddWarningLabel()">Add</button>
+                            <br>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div procedure-info></div>
+    </div>
+
+    <div class="col-lg-9 col-md-9 col-sm-9  mycontent-left">
+
+        <h2 class="text-center">Medical History</h2>
+
+            <div class="row">
+                <div class="col-md-3">
+                    <label for="procedureType">Select type of procedure:</label>
+                    <select class="form-control" id="procedureType" ng-model="pagingInfo.procedure" ng-change="Search()">
+                        <option value="">All</option>
+                        <option value="Examination">Examination</option>
+                        <option value="Treatment">Treatment</option>
+                        <option value="Vaccination">Vaccination</option>
+                    </select>
+
+                </div>
+                <div class="col-md-9">
+
+                    <label>Select period:</label>
+                    <div class="row">
+                        <div class='col-md-4'>
+                            <div class="dropdown">
+                                <a class="dropdown-toggle my-toggle-select " id="dLabel" role="button" data-toggle="dropdown">
+                                    <div class="input-append">
+                                        <input type="text" placeholder="From" class="form-control" id="dateFrom" onkeypress="return false" ng-value="pagingInfo.periodFrom | date:'yyyy-MM-dd'">
+                                        <span class="add-on">
+                                            <i class="icon-calendar"></i>
+                                        </span>
+                                    </div>
+                                </a>
+                                <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                                    <datetimepicker data-ng-model="pagingInfo.periodFrom" data-datetimepicker-config="{ minView: 'day' }" ng-change="check()"></datetimepicker>
+                                </ul>
+                            </div>
+                        </div>
+
+                            <div class='col-md-4'>
+                                <div class="dropdown">
+                                    <a class="dropdown-toggle my-toggle-select " id="dLabel1" role="button" data-toggle="dropdown">
+                                        <div class="input-append">
+                                            <input type="text" class="form-control" placeholder="till" id="dateTill" onkeypress="return false"  ng-focus="checkClear = 'periodTill'" ng-value="pagingInfo.periodTill | date:'yyyy-MM-dd'">
+                                            <span class="add-on">
+                                                <i class="icon-calendar"></i>
+                                            </span>
+                                        </div>
+                                    </a>
+                                    <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel1" >
+                                    <datetimepicker data-ng-model="pagingInfo.periodTill" data-datetimepicker-config="{ minView: 'day' }" ng-change="check()" ></datetimepicker>
+
+                                </ul>
+                            </div>
+                        </div>
+                        <div class='col-md-2'>
+
+                            <button type="button" class="btn btn-default" ng-click="SearchByDate(loadList)">
+                                <span class="glyphicon glyphicon-search"></span>
+                                Search
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <br>
+            <div class="mycontent-bottom"></div>
+
+        <br>
+        <div class="container-fluid">
+            <div class="panel panel-default" ng-repeat="proc in medicalHistory.Procedures">
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <h3>{{proc.Type}}</h3>
+                            <h3>{{proc.Name}}</h3>
+                            <h4>Doctor:
+                                <a href="#/doctors/{{proc.Doctor.UserId}}">
+                                    <span>{{proc.Doctor.Name}}
+                                        {{proc.Doctor.Surname}}</span>
+                                </a>
+                            </h4>
+                            <h4>
+                                Date:
+                                <span>
+                                    {{proc.Date | date:'yyyy-MM-dd'}}
+                                </span>
+                            </h4>
+                        </div>
+                        <div class="col-md-8">
+                            <h3>Description:</h3>
+                            <p>{{proc.Description}}</p>
+                        </div>
+                        <div class="col-md-1">
+
+                            <div class="text-right">
+                                <a href="" data-toggle="modal" data-target="#ProcedureModal" ng-click="ViewProcedure(proc)">Details</a>
+                            </div>
+
+                        </div>
+
+                    </div>
+                    <hr>
+
+                </div>
+            </div>
+        </div>
+
+        <div ng-class="pages > 3  ?  (pages > 4 ? 'lessMarginLeftMore' : 'lessMarginLeft') : ''" custompagination>
+
+        </div>
+
+    </div>
+
+</div>
+
+</div>

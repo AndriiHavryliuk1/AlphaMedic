@@ -1,0 +1,28 @@
+<div class="fullHeight">
+    <div class="row defaultMargin">
+        <div class="panel-body col-md-2 col-sm-3">
+            <img src="{{user.URLImage}}" class="img-thumbnail profileAvatar" alt="Profile Avatar">
+            <h3>{{user.Name}}
+                {{user.Surname}}</h3>
+            <div ng-switch="user.DoctorType">
+                <div class="btn-group-vertical col-md-12  profileButtonMenu" role="group" aria-label="Menu">
+
+                    <button class="btn btn-default " onclick="location=this.value" value="#/schedule/{{user.UserId}}">Schedule </button>
+                    <button class="btn btn-default" onclick="location=this.value" value="#/patients?page=1&doctor={{user.UserId}}">Patients</button>
+                    <button class="btn  btn-default" data-toggle="modal" data-target="#settingsModalView">Settings</button>
+
+                    <button ng-switch-when="5" onclick="location=this.value" value="#/statistics/{{user.DepartmentId}}" class="btn btn-default">Department Statistic</button>
+                    <button ng-switch-when="4" onclick="location=this.value" value="#/statistics/0" class="btn btn-default">Hospital Statistic</button>
+
+                </div>
+            </div>
+        </div>
+        <div class="col-md-10 col-sm-9  container-fluid mycontent-left">
+            <div class="mycontent-bottom">
+                <h2>Upcoming appointments</h2>
+            </div>
+            <div appointment-list="doctorAppointments"></div>
+        </div>
+    </div>
+    <div settings="doctorCabinet"></div>
+</div>

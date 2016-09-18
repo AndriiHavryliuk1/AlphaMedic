@@ -1,0 +1,43 @@
+<div class="modal fade" id="departmentSettingsModalView" role="dialog">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content container-fluid">
+            <div class="modal-header">
+                <button class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Settings</h4>
+            </div>
+            <br>
+            <br>
+            <form class="form-horizontal">
+                <div class="form-group">
+                    <label for="name" class="col-sm-3 control-label">Name:</label>
+                    <div class="col-sm-9">
+                        <input type="text" id="name" placeholder="Name" ng-model="dep.Name" class="form-control" autofocus required maxlength="30">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="surname" class="col-sm-3 control-label">Description:</label>
+                    <div class="col-sm-9">
+                        <textarea type="text"  rows="20" placeholder="Description" ng-model="dep.Description" class="form-control">
+                        </textarea>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="picture" class="col-sm-3 control-label">Load picture</label>
+                    <div class="col-sm-9">
+                        <input class="form-control" type="file" id="picture" file-model="picture" accept="image/*">
+                    </div>
+                </div>
+                <br>
+                <br>
+                <div class="form-group">
+                    <div class="row">
+                        <!--<button type="submit" class="btn btn-primary btn-block">Register</button>-->
+                        <div class="col-xs-6 col-md-6 col-xs-offset-3">
+                            <input type="submit" value="Change" ng-click="ChangeDepartment()" class="btn btn-primary btn-block btn-lg" data-dismiss="modal" tabindex="7">
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

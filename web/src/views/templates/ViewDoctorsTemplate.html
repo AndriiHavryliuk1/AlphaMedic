@@ -1,0 +1,53 @@
+<div class="col-md-12 col-sm-8" ng-controller="ListOfDoctorsAdminController">
+    <br/>
+    <table class="table table-bordered">
+        <tr>
+
+            <th>
+                Name
+            </th>
+            <th>
+                Type
+            </th>
+            <th>
+                Education
+            </th>
+            <th>
+                Degree
+            </th>
+            <th>
+                Department
+            </th>
+          <th>
+              Edit
+            </th>
+        </tr>
+        <tr ng-repeat="doctor in doctors">
+            <td>
+                {{doctor.Name}} {{doctor.Surname}}
+            </td>
+            <td>
+                {{doctor.DoctorTypeInt|docTypeFilter}}
+            </td>
+            <td>
+                {{doctor.Education}}
+            </td>
+            <td>
+                {{doctor.Degree}}
+            </td>
+            <td>
+                {{doctor.DepartmentName}}
+            </td>
+              <td>
+              <div ng-switch on="doctor.Active">
+                  <button class="btn btn-sm btn-warning"  data-toggle="modal" data-target="#doctorSettings" ng-click="GetData(doctor)" title="Change">C</button>
+                <button ng-switch-when="true" class="btn btn-sm btn-info"   style="margin-top:2px" ng-click="ChangeState(doctor,false,'api/users/')" title="Disable">D</button>
+                <button ng-switch-when="false" class="btn btn-sm btn-danger"  style="margin-top:2px" ng-click="ChangeState(doctor,true,'api/users/')" title="Enable">E</button>
+              </div>
+            </td>
+        </table>
+        <div settings="doctor">
+
+        </div>
+        <div class="container-fliud" style="margin-left: -100px;" custompagination></div>
+    </div>

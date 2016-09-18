@@ -1,0 +1,116 @@
+<div class="row defaultMargin">
+    <h2>List of doctors</h2>
+
+    <hr class="colorgraph">
+    <div class="container-fluid">
+
+        <div class="col-md-3 col-sm-4">
+            <label>Search of doctors:</label>
+
+            <div class="input-group col-md-12 col-sm-12">
+              <input type="text" class="form-control" placeholder="Search" ng-change="search(loadList)"
+              ng-model="pagingInfo.search"  ng-model-options="{updateOn: 'default blur', debounce: {default: 300, blur: 0} }" name="q">
+              <div class="input-group-btn">
+                  <button class="btn btn-default" ng-click="search(loadList)">
+                      <i class="glyphicon glyphicon-search"></i>
+                  </button>
+              </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-4" id="departmentDiv" ng-controller="ListOfDepartmentsController">
+
+            <label for="departmentSelect">Choose department:</label>
+
+            <select class="form-control" id="departmentSelect" autofocus ng-model="pagingInfo.department" ng-change="search(loadList)">
+                <option value="" selected>All</option>
+                <option ng-repeat="doc in deps|unique:'Name'" value="{{doc.DepartmentId}}">{{doc.Name}}</option>
+            </select>
+
+        </div>
+    </div>
+
+    <!--<div class="container-fluid mycontent-bottom"></div>-->
+    <div class="container-fluid mycontent-center">
+        <hr>
+        <div class="panel panel-default   col-sm-10 col-sm-offset-1" ng-repeat="doctor in doctors">
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-md-2 col-sm-3">
+                        <a href="#/doctors/{{doctor.DoctorId}}">
+                            <img ng-src="{{doctor.URLImage}}" class="img-responsive" alt="Doctor`s photo" width="100" height="100">
+                        </a>
+                    </div>
+                    <div class="col-md-2 col-sm-2">
+                        <dl class="appointmentBlock">
+                            <dt>
+                                Name:
+                            </dt>
+                            <dd class="topMargin">
+                                <a href="#/doctors/{{doctor.DoctorId}}">{{doctor.Name}}
+                                    {{doctor.Surname}}</a>
+                            </dd>
+                        </dl>
+                    </div>
+                    <div class="col-md-2 col-sm-2">
+                        <dl class="appointmentBlock">
+                            <dt>
+                                Department:
+
+                            </dt>
+                            <dd class="topMargin">
+                                <a href="#/departments/{{doctor.DepartmentId}}">{{doctor.DepartmentName}}</a>
+                            </dd>
+                        </dl>
+                    </div>
+                    <div class="col-md-2 col-sm-2">
+                        <dl class="appointmentBlock">
+                            <dt>
+                                Degree:
+                            </dt>
+                            <dd class="topMargin">
+                                {{doctor.Degree}}
+                            </dd>
+                        </dl>
+                    </div>
+                    <div class="col-md-2 col-sm-2">
+                        <dl class="appointmentBlock">
+                            <dt>
+                                Education:
+                            </dt>
+                            <dd class="topMargin">
+                                {{doctor.Education}}
+                            </dd>
+                        </dl>
+                    </div>
+                    <div class="col-lg-2 col-md-2  col-sm-3">
+                        <dl class="appointmentBlock">
+                            <dt></dt>
+                            <dd>
+                              <br>
+                                <a>
+                                    <button ng-show="!isAuthorized || isPatient" class="btn btn-primary btn-block btn-md btn-sm" ng-click="goToAppointment(doctor.DepartmentId,doctor.DoctorId)">Register for
+                                        <br>
+                                        appointment</button>
+                                </a>
+                            </dd>
+
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="container-fluid" ng-show="AnyElementOfList">
+            <br><br>
+            <br><br>
+            <h3 class="text-muted text-center" ng-hide="pagingInfo.search != undefined">This list is empty</h3>
+            <h3 class="text-muted text-center" ng-show="pagingInfo.search != undefined">There is no doctor with such name!</h3>
+            <br><br>
+            <br><br>
+        </div>
+
+
+
+
+        <div custompagination ng-hide="AnyElementOfList"></div>

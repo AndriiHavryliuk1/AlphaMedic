@@ -1,0 +1,60 @@
+<div class="col-md-12 col-sm-8" ng-controller="ListOfAllPatientsController">
+    <br/>
+    <table class="table table-bordered">
+        <tr>
+
+            <th>
+                Name
+            </th>
+            <th>
+                Gender
+            </th>
+            <th>
+                DateOfBirth
+            </th>
+            <th>
+                Phone
+            </th>
+            <th>
+                Adress
+            </th>
+            <th>
+                Email
+            </th>
+
+            <th>
+              Edit
+            </th>
+        </tr>
+        <tr ng-repeat="patient in allPatients">
+            <td>
+                {{patient.Name}} {{patient.Surname}}
+            </td>
+            <td>
+                {{patient.Gender}}
+            </td>
+            <td>
+                {{patient.DateOfBirth|date:'dd-MM-yyyy'}}
+            </td>
+            <td>
+                {{patient.Phone}}
+            </td>
+            <td>
+                {{patient.Address}}
+            </td>
+            <td>
+                {{patient.Email}}
+            </td>
+
+            <td>
+              <div  ng-switch on="patient.Active">
+                    <button class="btn btn-sm btn-warning"  data-toggle="modal" data-target="#settingsModalView" ng-click="GetData(patient,true)" title="Change">C</button>
+                    <button ng-switch-when="true" class="btn btn-sm btn-info" ng-click="ChangeState(patient,false,'api/users/')" title="Disable">D</button>
+                    <button ng-switch-when="false" class="btn btn-sm btn-danger" ng-click="ChangeState(patient,true,'api/users/')" title="Enable">E</button>
+              </div>
+            </td>
+              <div settings="patient"></div>
+        </table>
+
+        <div class="container-fliud" style="margin-left: -200px;" custompagination></div>
+    </div>

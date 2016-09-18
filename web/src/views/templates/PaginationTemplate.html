@@ -1,0 +1,36 @@
+<div class="col-md-6 col-md-offset-3 col-sm-6 col-sm-offset-4">
+    <nav>
+        <ul class="pager">
+
+          <li ng-class="pagingInfo.page == 1 ?  'disabled' : ''">
+              <a ng-click='firstPage(loadList, pages)' aria-label="Previous" href="">
+                  <span aria-hidden="true">First</span>
+              </a>
+          </li>
+
+            <li ng-class="pagingInfo.page == 1 ?  'disabled' : ''">
+                <a class="active" ng-click='previousPage(loadList)' aria-label="Previous" href="" >
+                    <span aria-hidden="true">Previous</span>
+                </a>
+            </li>
+
+            <li ng-repeat=" l in paginArray" ng-click='selectPage(loadList,l)'  ng-class="pagingInfo.page == l ?  'disabled' : ''" >
+                <a aria-label="Current" href="" >
+                    <span aria-hidden="true" >{{l}}</span>
+                </a>
+            </li>
+
+            <li ng-class="pagingInfo.page == pages ?  'disabled' : ''">
+              <a ng-click='nextPage(loadList,pages)'  aria-label="Next" href="">
+                  <span aria-hidden="true">Next</span>
+              </a>
+            </li>
+
+            <li ng-class="pagingInfo.page == pages ?  'disabled' : ''">
+              <a ng-click='lastPage(loadList,pages)' aria-label="Next" href="">
+                  <span aria-hidden="true">Last</span>
+              </a>
+            </li>
+        </ul>
+    </nav>
+</div>

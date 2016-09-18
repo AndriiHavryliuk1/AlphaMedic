@@ -1,0 +1,77 @@
+<div class="container-fluid">
+    <div class="row col-lg-12">
+
+        <div class="col-lg-2 col-sm-3 ">
+            <img src="{{patient.URLImage}}" class="img-thumbnail profileAvatar" alt="Profile Avatar">
+
+            <h3>{{patient.Name}}
+                {{patient.Surname}}</h3>
+
+            <div class="btn-group-vertical profileButtonMenu" role="group" aria-label="Menu">
+                <a href="#/medicalHistory/{{patient.UserId}}?page=1">
+                    <button class="btn btn-default col-md-12">
+                        Medical History</button>
+                </a>
+                <a href="#/registrationForAppointment">
+                    <button class="btn btn-default col-md-12">Register for Appointment</button>
+                </a>
+
+                <button class="btn btn-default col-md-12" data-toggle="modal" data-target="#settingsModalView">Settings</button>
+
+            </div>
+            <br/>
+            <div class="span4 ">
+                <div >
+                    <dl>
+                        <dt class="text-left" id="genderHeaderCabinet">Gender:</dt>
+                        <dd id="genderBodyCabinet">{{patient.Gender}}
+                        </dd>
+
+                        <dt class="text-left" id="dateOfBirthHeaderCabinet">Date Of Birth:</dt>
+                        <dd id="dateOfBirthBodyCabinet">
+                            {{patient.DateOfBirth|date:'dd-MM-yyyy'}}
+                        </dd>
+
+                        <dt class="text-left" id="bloodGroupBirthHeaderCabinet">Blood Group:</dt>
+                        <dd id="bloodGroupBirthBodyCabinet">
+                            {{patient.BloodGroup.Group}}</dd>
+
+                        <dt class="text-left" id="phoneHeaderCabinet">Phone:</dt>
+                        <dd id="phoneBodyCabinet">
+                            {{patient.Phone}}
+                        </dd>
+
+                        <dt class="text-left" id="addressHeaderCabinet">Address:
+                        </dt>
+                        <dd id=addressBodyCabinet>
+                            {{patient.Address}}
+                        </dd>
+
+                    </dl>
+
+                </div>
+            </div>
+
+        </div>
+        <div settings></div>
+
+        <div class="col-lg-10 col-sm-10 mycontent-left container-fluid">
+            <div class="mycontent-bottom">
+                <h2>Upcoming appointments</h2>
+            </div>
+
+            <div appointment-list="patientAppointments" ng-hide="AnyAppointments"></div>
+
+            <div class="container-fluid" ng-show="AnyAppointments">
+                <br><br>
+                <br><br>
+                <h3 class="text-muted text-center">You have no future appointments</h3>
+                <br><br>
+                <br><br>
+            </div>
+
+            <div customdi></div>
+
+        </div>
+    </div>
+</div>

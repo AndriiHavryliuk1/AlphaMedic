@@ -1,0 +1,68 @@
+<div class="col-md-12 col-sm-8" ng-controller="ListOfEmployeesController">
+    <br/>
+    <table class="table table-bordered ">
+        <tr>
+
+            <th>
+                Name
+            </th>
+            <th>
+                DateOfBirth
+            </th>
+            <th>
+                Phone
+            </th>
+            <th>
+                Adress
+            </th>
+            <th style="width:200px">
+                Email
+            </th>
+            <th>
+                BookNumber
+            </th>
+            <th>
+                Type
+            </th>
+            <th>
+                Edit
+            </th>
+        </tr>
+        <tr ng-repeat="employee in employees| filter: pagingInfo.search|searchField:Active|filter:isActiveFilter">
+            <td>
+                {{employee.Name}} {{employee.Surname}}
+            </td>
+            <td>
+                {{employee.DateOfBirth}}
+            </td>
+            <td>
+                {{employee.Phone}}
+            </td>
+            <td>
+                {{employee.Address}}
+            </td>
+            <td>
+                <textarea rows="5" class="text-area" disabled>{{employee.Email}}</textarea>
+            </td>
+            <td>
+                {{employee.EmploymentRecordBookNumber}}
+            </td>
+            <td>
+                {{employee.EmployeeType}}
+            </td>
+            <td>
+                    <div  ng-switch on="employee.Active">
+
+                            <button class="btn btn-sm btn-warning"  data-toggle="modal" data-target="#employeeSettings" ng-click="GetData(employee)" title="Change">C</button>
+                          <button ng-switch-when="true" class="btn btn-sm btn-info" style="margin-top:2px"  ng-click="ChangeState(employee,false,'api/users/')" title="Disable">D</button>
+                            <button ng-switch-when="false" class="btn btn-sm  btn-danger" style="margin-top:2px" ng-click="ChangeState(employee,true,'api/users/')" title="Edit">E</button>
+
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </table>
+    <div settings="employee">
+
+    </div>
+</div>

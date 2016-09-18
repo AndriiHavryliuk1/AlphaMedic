@@ -1,0 +1,55 @@
+<div class="col-md-12 col-sm-8" ng-controller="ListOfMedicationsController">
+    <br/>
+    <div class="alert alert-danger" ng-show="failed">
+        <strong>Server Error!
+        </strong>
+        Can't add medications
+    </div>
+    <div class="alert alert-success" ng-show="succed">
+        <strong>Success
+        </strong>
+        Medications has been added
+    </div>
+
+    <form class="form-horizontal" ng-submit="addMedication()">
+        <div class="row">
+            <div class="col-md-6 col-sm-3">
+                <input class="form-control" ng-model="newMedications.Description" placeholder="Description" type="text" />
+            </div>
+            <div class="col-md-4">
+                <input class="form-control" ng-model="newMedications.Price" placeholder="Price" type="text" />
+            </div>
+            <div class="col-md-2">
+                <input type="submit" value="Add" class="btn btn-success" >
+            </div>
+        </div>
+    </form>
+    <br />
+
+    <table class="table table-bordered">
+        <tr>
+            <th>
+                Description
+            </th>
+            <th>
+                Price
+            </th>
+
+        </tr>
+        <tr ng-repeat="drug in medications|filter: pagingInfo.search">
+            <td>
+                {{drug.Description}}
+            </td>
+            <td class=" col-md-2 col-sm-2">
+
+                <input id="mdp{{drug.MedicationId}}" type="text" ng-model="drug.Price" class="form-control" name="firstname" medicationprice-enter="{{drug.MedicationId}}" value="{{drug.Price}}">
+                <div class="alert alert-success" ng-show="succed">
+                    <strong>Success </strong>
+                </div>
+                <div class="alert alert-danger" ng-show="failed">
+                    <strong> Error  </strong>
+                </div>
+            </td>
+
+    </table>
+</div>

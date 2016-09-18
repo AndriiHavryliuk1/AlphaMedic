@@ -1,0 +1,45 @@
+[{
+
+        "DoctorId": "1",
+        "UserName": "Doc1",
+        "UserSurname": "SurDoc1",
+        "DepartmentId":"1",
+        "PatientsCount":"20",
+        "AppoitmentsCount":"40",
+        "TotalWorkHours":"50"
+
+    },
+    {
+
+            "DoctorId": "2",
+            "UserName": "Doc2",
+            "UserSurname": "SurDoc2",
+            "DepartmentId":"2",
+            "PatientsCount":"20",
+            "AppoitmentsCount":"40",
+            "TotalWorkHours":"50"
+
+        },
+        {
+
+                "DoctorId": "3",
+                "UserName": "Doc3",
+                "UserSurname": "SurDoc3",
+                "DepartmentId":"2",
+                "PatientsCount":"20",
+                "AppoitmentsCount":"40",
+                "TotalWorkHours":"50"
+            },
+            {
+
+                    "DoctorId": "4",
+                    "UserName": "Doc4",
+                    "UserSurname": "SurDoc4",
+                    "DepartmentId":"4",
+                    "PatientsCount":"20",
+                    "AppoitmentsCount":"40",
+                    "TotalWorkHours":"50"
+
+                }
+
+]

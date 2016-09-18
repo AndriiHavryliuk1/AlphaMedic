@@ -1,0 +1,29 @@
+{
+  "name": "alphamedic",
+  "version": "1.0.0",
+  "description": "Service for medical institutions",
+  "main": "index.js",
+  "dependencies": {
+    "angular-bootstrap-datetimepicker": "^1.0.1"
+  },
+  "devDependencies": {
+    "grunt": "^1.0.1",
+    "grunt-contrib-concat": "^1.0.1",
+    "grunt-contrib-jshint": "^1.0.0",
+    "grunt-contrib-uglify": "^2.0.0",
+    "grunt-wiredep": "^3.0.1",
+    "jshint": "^2.9.2"
+  },
+  "scripts": {
+    "test": "ping"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://bootcamp.edvantis.com/Bonobo.Git.Server/AlphaMedic.git"
+  },
+  "keywords": [
+    "alphamedic"
+  ],
+  "author": "alpha team",
+  "license": "ISC"
+}

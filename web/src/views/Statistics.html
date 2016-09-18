@@ -1,0 +1,39 @@
+<div class="container-fluid">
+    <div class="row" id="statisticDiv">
+        <div>
+            <label for="departmentSelect">Choose department:</label>
+        </div>
+        <div class="row col-md-12 col-sm-8 ">
+
+
+            <div class="col-lg-6 col-sm-6">
+
+                <select class="form-control" id="departmentStatSelect" onchange="location = this.value;">
+                    <option value="#/statistics/0">All</option>
+                    <option ng-selected="selectedOption==dep.Name" ng-repeat="dep in statDepartments" value="#/statistics/{{dep.DepartmentId}}">{{dep.Name}}</option>
+                </select>
+            </div>
+            <div class="col-lg-6 col-sm-6">
+                <select class="form-control" id="doctorSelect" ng-model="selectedDoc">
+                    <option value=0>All</option>
+                    <option value="{{doc.DoctorId}}" ng-repeat="doc in statDoctors">{{doc.UserName}}{{doc.UserSurname}}</option>
+                </select>
+            </div>
+
+            </br>
+
+        </div>
+        </br>
+        <div class="row col-md-12 col-sm-8 mycontent-bottom">
+            </br>
+        </div>
+        <div class="row col-md-12 col-sm-8 ">
+            </br>
+        </div>
+        <div class=" col-md-10 col-md-offset-1 col-sm-6 text-centr" stat-table="statDoctors">
+            <br />
+        </div>
+    </div>
+
+
+</div>

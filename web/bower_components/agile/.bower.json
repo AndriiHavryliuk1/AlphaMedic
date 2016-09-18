@@ -1,0 +1,36 @@
+{
+  "name": "agile",
+  "version": "0.0.2",
+  "main": "dist/agile.js",
+  "description": "Like Underscore, but with zero callbacks and really more fun",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/a8m/agile.git"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "ignore": [
+    "node_modules",
+    "bower_components",
+    "package.json",
+    "lib",
+    "test",
+    "src",
+    "Gruntfile.js",
+    ".gitignore",
+    "README.md",
+    "travis.yml",
+    ".bowercc"
+  ],
+  "homepage": "https://github.com/a8m/agile",
+  "_release": "0.0.2",
+  "_resolution": {
+    "type": "version",
+    "tag": "v0.0.2",
+    "commit": "8f3036dfeda09f399c2530057772842b570b7f0f"
+  },
+  "_source": "https://github.com/a8m/agile.git",
+  "_target": "^0.0.2",
+  "_originalSource": "agile",
+  "_direct": true
+}

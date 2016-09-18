@@ -1,0 +1,81 @@
+<div class="container-fluid topMargin" id="lolo">
+    <div class="row">
+        <div class="col-md-3">
+            <img src="{{dep.URLImage}}" class="img-responsive" width="300" height="300" alt="avatar">
+            <br>
+            <div class="row">
+                <div class="form-group col-md-6">
+                    <a href="#/doctors?page=1">
+                        <button class=" btn btn-default col-md-12" ng-click="goToListOfDoctor()">View Doctors</button>
+                    </a>
+                </div>
+                <div class="form-group col-md-6" ng-hide="HidePat">
+                    <a href="#/patients?page=1">
+                        <button class=" btn btn-default col-md-12" ng-click="goToListOfPatients()">View Patients</button>
+                    </a>
+                </div>
+                <div class="form-group col-md-6" ng-show="isAdmin">
+                    <button class="btn btn-default col-md-12" data-toggle="modal" data-target="#departmentSettingsModalView">Settings</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-9">
+            <h2>{{dep.Name}}</h2>
+            <br>
+            <dl>
+                <dt>
+                    <p class="h3">
+                        <strong>Department Head:</strong>
+                    </p>
+                </dt>
+                <dd>
+                    <a class="h4" href="#/doctors/{{dep.HeadDepartment.UserId}}">{{dep.HeadDepartment.Name}} {{dep.HeadDepartment.Surname}}</a>
+                </dd>
+                <dt>
+                    <p class="h3">
+                        <strong>Description:</strong>
+                    </p>
+                </dt>
+                <dd>
+                    <p class="text-justify">{{dep.Description}}
+                    </p>
+                </dd>
+            </dl>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="mycontent-bottom inline">
+        <h3>Feedback</h3>
+        <button class="btn btn-primary " ng-click="AllFeedbacksFunc()" ng-show="showButtonAllFeedback">{{ButtonName}}</button>
+    </div>
+    <div class="panel panel-default defaultMargin " ng-model="dep.Feedbacks" ng-repeat="feedback in dep.Feedbacks">
+        <div class="panel-body">
+            <div class="row">
+                <div class="col-md-2">
+                    <img ng-src="{{feedback.PatientURLImage}}" class="img-responsive" alt="avatar">
+                </div>
+                <div class="col-md-10">
+                    <label class="h4">{{feedback.PatientFullName}}</label>
+                    <p class="text-justify">{{feedback.Description}}
+                        <div class="text-right">
+                            <p>
+                                <small>{{feedback.Date | date:'yyyy-MM-dd'}}</small>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="panel panel-default defaultMargin" ng-controller="FeedbacksController">
+            <div class="panel-body">
+                <textarea class="form-control" rows="3" ng-model="Feedback.Description"></textarea>
+                <br>
+                <button type="button" class="btn btn-primary" ng-click="LeaveFeedback()">Leave Feedback</button>
+            </div>
+        </div>
+    </div>
+    <div settings="department">
+
+    </div>

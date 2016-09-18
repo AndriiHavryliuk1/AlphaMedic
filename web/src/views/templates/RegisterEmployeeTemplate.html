@@ -1,0 +1,148 @@
+    <div class="row">
+        <div class="col-xs-12 col-sm-8 col-md-6 col-sm-offset-2 col-md-offset-3" ng-controller="EmployeeRegistrationController">
+            <h3 class="text-center">Enter user`s information</h3>
+            <br>
+            <div class="alert alert-danger" ng-show="failed">
+                <strong>Server Error!
+                </strong>
+                Can't register employee
+            </div>
+            <div class="alert alert-success" ng-show="succed">
+                <strong>Success
+                </strong>
+                Employee has been registered
+            </div>
+            <form class="form-horizontal" name="regiserEmployeeForm" ng-submit="submit()">
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Type of employee*</label>
+                    <div class="col-sm-9">
+                        <select class="form-control" ng-model="Type" ng-change="OnChangeType()">
+                            <option>Doctor</option>
+                            <option>Receptionist</option>
+                            <option>Administrator</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="name" class="col-sm-3 control-label">Name</label>
+                    <div class="col-sm-9">
+                        <input type="text" id="name" placeholder="Name" ng-model="employee.Name" class="form-control" autofocus required maxlength="30">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="surname" class="col-sm-3 control-label">Surname</label>
+                    <div class="col-sm-9">
+                        <input type="text" id="surname" placeholder="Surname" ng-model="employee.Surname" class="form-control" required maxlength="30">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-sm-3">Gender</label>
+                    <div class="col-sm-6">
+                        <div class="row">
+                            <div class="col-sm-4">
+                                <label class="radio-inline">
+                                    <input type="radio" name="gender" id="femaleRadio" value="1" ng-model="employee.Gender" value="1">Female
+                                </label>
+                            </div>
+                            <div class="col-sm-4">
+                                <label class="radio-inline">
+                                    <input type="radio" name="gender" id="maleRadio" ng-model="employee.Gender" value="0">Male
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email" class="col-sm-3 control-label">Email*</label>
+                    <div class="col-sm-9">
+                        <input type="email" id="email" placeholder="Email" ng-model="employee.Email" class="form-control" required pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="password" class="col-sm-3 control-label">Password*</label>
+                    <div class="col-sm-9">
+                        <input type="password" id="password" placeholder="Password" ng-model="employee.Password" class="form-control" required pattern="^\S{6,}$">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmpassword" class="col-sm-3 control-label">Confirm Password*</label>
+                    <div class="col-sm-9">
+                        <input type="password" placeholder="Confirm Password" class="form-control" id="password_confirm" oninput="check(this)" pattern="^\S{6,}$" required>
+                    </div>
+
+                </div>
+                <div class="form-group">
+                    <label for="birthDate" class="col-sm-3 control-label">Date of Birth</label>
+                    <div class="dropdown">
+                        <a class="dropdown-toggle my-toggle-select col-sm-9" id="dLabel" role="button" data-toggle="dropdown">
+                            <div class="input-append">
+                                <input type="text" placeholder="Date of birth" class="form-control" value="{{employee.DateOfBirth | date:'yyyy-MM-dd'}}">
+                                <span class="add-on">
+                                    <i class="icon-calendar"></i>
+                                </span>
+                            </div>
+                        </a>
+                        <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                            <datetimepicker data-ng-model="employee.DateOfBirth" data-datetimepicker-config="{ minView: 'day' }"></datetimepicker>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="tel" class="col-sm-3 control-label">Phone</label>
+                    <div class="col-sm-9">
+                        <input type="tel" id="tel" class="form-control" placeholder="Phone" ng-model="employee.Phone">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="address" class="col-sm-3 control-label">Address</label>
+                    <div class="col-sm-9">
+                        <input type="text" id="address" ng-model="employee.Address" placeholder="Address" class="form-control">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="EmploymentRecordBookNumber" class="col-sm-3 control-label">Employment RecordBook Number</label>
+                    <div class="col-sm-9">
+                        <input type="text" id="EmploymentRecordBookNumber" ng-model="employee.EmploymentRecordBookNumber" placeholder="EmploymentRecordBookNumber" class="form-control">
+                    </div>
+                </div>
+                <div class="form-group" ng-show="isTypeDoctor">
+                    <label for="Degree" class="col-sm-3 control-label">Department</label>
+                    <div class="col-sm-9">
+                      <select class="form-control" ng-init="DepartmentId = departmentsList[0].DepartmentId" ng-model="DepartmentId" ng-options="dep.DepartmentId as dep.Name for dep in departmentsList" required>
+
+                      </select>
+
+                    </div>
+                </div>
+
+                <div class="form-group" ng-show="isTypeDoctor">
+                    <label for="Degree" class="col-sm-3 control-label">Degree</label>
+                    <div class="col-sm-9">
+                        <input type="text" id="Degree" ng-model="employee.Degree" placeholder="Degree" class="form-control">
+                    </div>
+                </div>
+
+                <div class="form-group" ng-show="isTypeDoctor">
+                    <label for="Education" class="col-sm-3 control-label">Education</label>
+                    <div class="col-sm-9">
+                        <input type="text" id="Education" ng-model="employee.Education" placeholder="Education" class="form-control">
+                    </div>
+                </div>
+
+                <br><br><br>
+                <div class="form-group">
+                    <div class="row">
+                        <div class="col-xs-6 col-md-6 col-xs-offset-3">
+                            <input type="submit" value="Register" class="btn btn-primary btn-block btn-lg">
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>

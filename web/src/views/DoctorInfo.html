@@ -1,0 +1,77 @@
+<div class="container-fluid topMargin">
+    <div class="row">
+        <div class="col-md-3">
+            <img src="{{doctor.URLImage}}" class="img-responsive" width="300" height="300" alt="avatar">
+            <br>
+            <div class="row">
+                <div class="form-group col-md-6" ng-hide="isPatient == true || isHidePatients">
+                    <a href="#/patients?page=1">
+                        <button class=" btn btn-default col-md-12" ng-click="goToListOfPatients()">View Patients</button>
+                    </a>
+                </div>
+
+                <div class="form-group col-md-6">
+                    <a href="#/schedule/{{doctor.ScheduleId}}">
+                        <button class=" btn btn-default col-md-12">View Schedule</button>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <h2>{{doctor.FullName}}</h2>
+            <br>
+            <dl class="dl-horizontal h4">
+                <dt>Department:</dt>
+                <dd><a href="#/departments/{{doctor.DepartmentId}}">{{doctor.DepartmentName}}</a></dd>
+                <dt>Degree:</dt>
+                <dd>{{doctor.Degree}}</dd>
+                <dt>Education:</dt>
+                <dd>{{doctor.Education}}</dd>
+                <dt>Gender:</dt>
+                <dd>{{doctor.Gender}}</dd>
+                <dt>Phone:</dt>
+                <dd>{{doctor.Phone}}</dd>
+                <dt>Working Hours:</dt>
+                <dd>{{doctor.StartWorkingTime}} - {{doctor.FinishWorkingTime}}</dd>
+            </dl>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="mycontent-bottom inline">
+        <h3>Feedback</h3>
+        <button class="btn btn-primary" ng-click="AllFeedbacksFunc()" ng-show="showButtonAllFeedback">{{ButtonName}}</button>
+        </div>
+    <div class="panel panel-default defaultMargin " ng-model="doctor.Feedbacks" ng-repeat="feedback in doctor.Feedbacks">
+        <div class="panel-body">
+            <div class="row">
+                <div class="col-md-2">
+                    <img ng-src="{{feedback.PatientURLImage}}" class="img-responsive" alt="avatar">
+                </div>
+                <div class="col-md-10">
+                    <label class="h4">{{feedback.PatientFullName}}</label>
+                    <p class="text-justify">
+                        {{feedback.Description}}
+                    </p>
+                    <div class="text-right">
+                        <p>
+                            <small>{{feedback.Date | date:'yyyy-MM-dd'}}</small>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="panel panel-default defaultMargin" ng-controller="FeedbacksController">
+        <div class="panel-body" >
+            <textarea class="form-control" rows="3" ng-model="Feedback.Description"></textarea>
+            <br>
+            <button type="button" class="btn btn-primary" ng-click="LeaveFeedback()">Leave Feedback</button>
+        </div>
+    </div>
+
+
+
+
+</div>

@@ -1,0 +1,46 @@
+<div class="row">
+    <div class="col-xs-12 col-sm-8 col-md-6 col-sm-offset-2 col-md-offset-3" ng-controller="AddDepartmentController">
+        <h3 class="text-center">Enter department information</h3>
+        <br>
+        <div class="alert alert-danger" ng-show="failed">
+            <strong>Server Error!
+            </strong>
+            Can't register employee
+        </div>
+        <div class="alert alert-success" ng-show="succed">
+            <strong>Success
+            </strong>
+            Employee has been registered
+        </div>
+        <form class="form-horizontal" name="addDepartmentForm" ng-submit="submit()">
+
+            <div class="form-group">
+                <label for="name" class="col-sm-3 control-label">Name</label>
+                <div class="col-sm-9">
+                    <input type="text" id="name" placeholder="Name" ng-model="newDepartment.Name" class="form-control" autofocus required maxlength="30">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="surname" class="col-sm-3 control-label">Description:</label>
+                <div class="col-sm-9">
+                    <textarea type="text"  rows="20" placeholder="Description" ng-model="newDepartment.Description" class="form-control">
+                    </textarea>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="picture" class="col-sm-3 control-label">Load picture</label>
+                <div class="col-sm-9">
+                    <input class="form-control" type="file" id="picture" file-model="picture" accept="image/*">
+                </div>
+            </div>
+            <br>
+            <div class="form-group">
+                <div class="row">
+                    <div class="col-xs-9 col-md-9 col-xs-offset-3">
+                        <input type="submit" value="Add Department" class="btn btn-primary btn-block btn-lg">
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

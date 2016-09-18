@@ -1,0 +1,200 @@
+<div ng-controller="AppointmentInfoReceptionistController">
+    <div class="container-fluid">
+        <h2>Appointment Information</h2>
+        <hr class="colorgraph">
+        <div class="row">
+            <div class="col-xs-12 col-sm-8 col-md-6">
+                <form class="form-horizontal" ng-submit="Confirm()">
+                    <div class="form-group">
+                        <label class="control-label col-sm-4">Patient:</label>
+                        <a href="#/patients/{{appointment.PatientId}}">
+                            <label class="control-label col-sm-3">{{appointment.PatientFullName}}</label>
+                        </a>
+                    </div>
+                    <br>
+                    <div class="form-group" ng-hide="isDoctorSetted">
+                        <label class="col-sm-4 control-label" for="departmentSelect">Choose department:</label>
+                        <div class="col-sm-5">
+                            <select class="form-control" ng-model="chooseDep" ng-change="changeDepartment()" ng-disabled="!isEdit">
+                                <option ng-repeat="department in departments | orderBy:Name" value="{{department.DepartmentId}}">{{department.Name}}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <br>
+                    <div class="form-group" ng-hide="isDoctorSetted">
+                        <label class="col-sm-4 control-label">Choose doctor:</label>
+                        <div class="col-sm-5">
+                            <select class="form-control" ng-model="appointment.DoctorId" ng-disabled="!isEdit">
+                                <option ng-repeat="doctor in doctors | orderBy:FullName" value="{{doctor.UserId}}">{{doctor.Name + " " + doctor.Surname}}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group" ng-show="isDoctorSetted">
+                        <label class="control-label col-sm-4">Doctor:</label>
+                        <a href="#/doctors/{{appointment.DoctorId}}">
+                            <label class="control-label col-sm-3">{{appointment.DoctorFullName}}</label>
+                        </a>
+                        <a href="" ng-click="ChangeDoctor()" ng-hide="!isEdit">
+                            <label class="control-label col-sm-3">
+                                <small>Change</small>
+                            </label>
+                        </a>
+                    </div>
+                    <br>
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">DateTime:</label>
+                        <div class="dropdown" ng-show="isEdit">
+                            <a class="dropdown-toggle my-toggle-select col-sm-5" id="dLabel" role="button" data-toggle="dropdown" data-target="#" href="">
+                                <div class="input-append">
+                                    <input type="text" class="form-control" value="{{appointment.Date | date:'yyyy-MM-dd HH:mm'}}">
+                                    <span class="add-on">
+                                        <i class="icon-calendar"></i>
+                                    </span>
+                                </div>
+                            </a>
+                            <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                                <datetimepicker data-ng-model="appointment.Date"></datetimepicker>
+                            </ul>
+                        </div>
+                        <div class="col-sm-5" ng-hide="isEdit">
+                            <input type="text" class="form-control" value="{{appointment.Date | date:'yyyy-MM-dd HH:mm'}}" disabled>
+                        </div>
+                    </div>
+                    <br>
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">Symptoms:</label>
+                        <div class="col-sm-5">
+                            <textarea class="form-control" rows="5" id="symptoms" readonly>{{appointment.Description}}</textarea>
+                        </div>
+                    </div>
+                    <br>
+                    <div class="form-group">
+                        <label class="col-sm-4 control-label">Duration:</label>
+                        <div class="col-sm-5 ">
+                            <input id="durationTimePicker" class="form-control" required type="text" placeholder="HH:mm"  maxlength="5" ng-model="appointment.Duration" ng-disabled="!isEdit" duration-picker>
+                        </div>
+                    </div>
+
+
+
+
+                    <br>
+                    <div class="form-group">
+                        <label class="control-label col-sm-4">State:</label>
+                        <label class="control-label col-sm-1">{{appointment.State}}</label>
+                    </div>
+                    <br>
+                    <div ng-show="isEdit">
+                            <input type="submit" value="Confirm" class=" btn btn-success col-sm-3 col-sm-offset-1"/>
+                    </div>
+                </form>
+                <button ng-show="isEdit" class=" btn btn-danger col-sm-3 col-sm-offset-1" ng-click="Decline()">Decline</button>
+                <button ng-show="isEdit" class=" btn btn-info col-sm-3 col-sm-offset-1" ng-click="Reset()">Cancel Changes</button>
+                <br><br>
+            </div>
+        </div>
+
+        <div class="row" ng-hide="isEdit">
+            <div class="form-group col-md-2">
+                <button class="btn btn-default col-md-12" ng-click="EnableEdit()">Edit</button>
+            </div>
+            <div class="form-group col-md-2">
+                <button class="btn btn-default col-md-12" ng-click="Decline()">Delete</button>
+            </div>
+        </div>
+        <div class="row" ng-show="isEdit">
+            <div class="form-group col-md-2">
+                <button ng-hide="showProcedure" class=" btn btn-default col-md-12" data-toggle="modal" data-target="#myModal">Set Procedure</button>
+            </div>
+        </div>
+    </div>
+    <!-- Modal for New procedure-->
+    <div class="modal fade" id="myModal" role="dialog">
+        <div class="modal-dialog modal-md">
+            <div class="modal-content container-fluid">
+                <div class="modal-header">
+                    <button class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">New procedure</h4>
+                </div>
+                <br>
+                <br>
+                <form class="form-horizontal" ng-submit="CreateProcedure()">
+                    <div class="form-group">
+                        <label for="procedureSelect" class="col-sm-4 control-label">Type of procedure</label>
+                        <div class="col-sm-6">
+                            <select class="form-control" id="procedureSelect" ng-model="Type">
+                                <option>Examination</option>
+                                <option>Treatment</option>
+                                <option>Vaccination</option>
+                            </select>
+                        </div>
+                    </div>
+                    <br>
+                    <div class="form-group">
+                        <label for="name" class="col-sm-4 control-label">Name</label>
+                        <div class="col-sm-6">
+                            <input type="text" required placeholder="Name" ng-model="procedure.Name" class="form-control" autofocus>
+                        </div>
+                    </div>
+                    <br>
+                    <div class="form-group">
+                        <label for="description" class="col-sm-4 control-label">Description</label>
+                        <div class="col-sm-6">
+                            <textarea class="form-control" required rows="5" ng-model="procedure.Description" id="description" placeholder="Enter description of procedure..."></textarea>
+                        </div>
+                    </div>
+                    <br>
+                    <div class="form-group">
+                        <label for="price" class="col-sm-4 control-label">Price</label>
+                        <div class="col-sm-6">
+                            <input type="text" id="price" required placeholder="Price" ng-model="procedure.Price" class="form-control">
+                        </div>
+                    </div>
+                    <br>
+                    <div class="form-group">
+                        <div class="row">
+                            <div class="col-xs-5 col-md-5 col-xs-offset-3">
+                                <input type="submit" value="Add Procedure"  ng-click="CreateProcedure()" class="btn btn-primary btn-block btn-lg" data-dismiss="modal"  tabindex="7">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+    <!--Modal for Procedure FullView-->
+    <div procedure-info></div>
+    <!--Panel for Procedure ShortView-->
+    <div class="panel panel-default defaultMargin">
+        <div class="panel-body">
+            <div class="row" ng-show="showProcedure">
+                <div class="col-md-2">
+                    <h3>Type:</h3>
+                    <h4>{{procedure.Type}}</h4>
+                </div>
+                <div class="col-md-2">
+                    <h3>Name:</h3>
+                    <h4>{{procedure.Name}}</h4>
+                </div>
+                <div class="col-md-2">
+                    <h3>Price:</h3>
+                    <h4>{{procedure.Price}}</h4>
+                </div>
+                <div class="col-md-6">
+                    <h3>Description:</h3>
+                    <p>
+                        {{procedure.Description}}
+                    </p>
+                    <div class="text-right">
+                        <a href="" data-toggle="modal" data-target="#ProcedureModal">Details</a>
+                    </div>
+                </div>
+            </div>
+            <div class="alert alert-info" ng-hide="showProcedure">
+                <strong>Sorry!</strong>
+                Procedure hasn't set for this appointment yet.
+            </div>
+        </div>
+    </div>
+</div>

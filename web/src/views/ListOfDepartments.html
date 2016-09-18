@@ -1,0 +1,22 @@
+<div class="row defaultMargin">
+    <h2>List of departments</h2>
+    <hr class="colorgraph">
+    <div class="container-fluid">
+        <div class="col-md-3 col-sm-3 text-center" ng-repeat="dep in deps">
+            <div class="well">
+                <label style="font-size: 18px;">
+                    <a href="#/departments/{{dep.DepartmentId}}">Department of<br>
+                        {{dep.Name}}</a>
+                </label>
+                <br>
+                <div class="text-justify">
+                    <p>
+                        {{dep.Description | limitTo: 250}}...</p>
+                </div>
+                <h4>
+                    <a href="#/departments/{{dep.DepartmentId}}">LEARN MORE</a>
+                </h4>
+            </div>
+        </div>
+    </div>
+</div>

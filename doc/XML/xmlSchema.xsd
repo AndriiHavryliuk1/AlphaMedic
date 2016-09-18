@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xs:schema attributeFormDefault="qualified"
+  elementFormDefault="qualified"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns:tns="http://alphamedic.com"
+  targetNamespace="http://alphamedic.com">
+
+    <xs:complexType name = "User" abstract="true">
+      <xs:sequence>
+        <xs:element type="xs:int" name="Id" />
+        <xs:element type="xs:string" name="Name" />
+        <xs:element type="xs:string" name="Surname" />
+        <xs:element type="xs:date" name="DateOfBirth" />
+        <xs:element type="xs:int" name="Phone" />
+        <xs:element type="xs:string" name="Address"/>
+        <xs:element type="xs:string" name="Email" />
+        <xs:element type="xs:string" name="Password" />
+        <xs:element type="xs:boolean" name="Active" />
+      </xs:sequence>
+    </xs:complexType>
+
+	<xs:element name="User" type="tns:User" />
+    <xs:complexType name = "Department">
+      <xs:sequence>
+        <xs:element type="xs:int" name="Id" />
+        <xs:element type="xs:string" name="Name" />
+      </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name = "BloodGroup">
+      <xs:sequence>
+        <xs:element type="xs:int" name="Id" />
+        <xs:element type="xs:string" name="Name" />
+      </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name = "Procedure">
+      <xs:sequence>
+        <xs:element type="xs:int" name="Id" />
+        <xs:element type="xs:string" name="Name" />
+        <xs:element type="xs:string" name="Description"/>
+        <xs:element type="xs:dateTime" name="Date" />
+        <xs:element type="xs:float" name="Price" />
+      </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name = "Schedule">
+      <xs:sequence>
+        <xs:element type="xs:int" name="Id" />
+        <xs:element type="xs:dateTime" name="StartWorkingTime" />
+        <xs:element type="xs:dateTime" name="FinishWorkingTime" />
+      </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name = "Employee" abstract="true">
+      <xs:complexContent>
+        <xs:extension base="tns:User">
+      <xs:sequence>
+        <xs:element type="xs:dateTime" name="EmploymentDate" />
+        <xs:element type="xs:string" name="EmploymentRecordBookNumber" />
+        <xs:element type="xs:dateTime" name="DissmissalDate"/>
+      </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+    </xs:complexType>
+
+	<xs:element name="Doctor" type="tns:Doctor"/>
+    <xs:complexType name = "Doctor">
+      <xs:complexContent>
+        <xs:extension base="tns:Employee">
+      <xs:sequence>
+        <xs:element type="tns:Department" name ="Department" />
+        <xs:element type="tns:Schedule" name ="Scedule" />
+        <xs:element type="xs:string" name="Degree" />
+        <xs:element type="xs:string" name="Education" />
+      </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+    </xs:complexType>
+
+
+    <xs:complexType name = "Patient" >
+      <xs:complexContent>
+        <xs:extension base="tns:User">
+      <xs:sequence>
+        <xs:element type="tns:BloodGroup" name="BloodGroup" />
+      </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType  name ="Appointment">
+      <xs:sequence>
+        <xs:element type="xs:int" name="Id" />
+        <xs:element type="tns:Patient" name="Patient" />
+        <xs:element type="tns:Procedure" name="Procedure"/>
+        <xs:element type="tns:AppointmentState" name="AppointmentState" />
+        <xs:element type="tns:Schedule" name="Schedule" />
+        <xs:element type="xs:string" name="Description"/>
+        <xs:element type="xs:dateTime" name="Date" />
+        <xs:element type="xs:int" name="Duration" />
+      </xs:sequence>
+    </xs:complexType >
+	<xs:element name="Appointment" type="tns:Appointment"/>
+
+    <xs:complexType name ="AppointmentState">
+      <xs:sequence>
+        <xs:element type="xs:int" name="Id" />
+        <xs:element type="xs:string" name="Name" />
+      </xs:sequence>
+    </xs:complexType>
+
+</xs:schema>

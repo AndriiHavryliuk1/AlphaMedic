@@ -1,0 +1,121 @@
+[
+	{
+		"Id":"6",
+		"Type":"Examination",
+		"Name":"X-Rey",
+		"Description": "Death there mirth way the noisy merit. Piqued shy spring nor six though mutual living ask extent. Replying of dashwood advanced ladyship smallest disposal or...",
+		"Doctor":
+		{
+			"id": "8",
+			"Name": "Sasha",
+			"Surname": "Melnyk",
+			"StartWorkingTime": "07:30",	 
+			"FinishWorkingTime": "17:30"
+		},
+		"Symphtoms":"asld'kasdasdsad",
+		"Diagnosis":
+		{
+			"Id":"1",
+			"Name":"asdlaskdj",
+			"Description":"asdasfdljkafladfk"
+		}
+	},
+	{
+		"Id":"5",
+		"Type":"Examination",
+		"Name":"X-Rey",
+		"Description": "Death there mirth way the noisy merit. Piqued shy spring nor six though mutual living ask extent. Replying of dashwood advanced ladyship smallest disposal or...",
+		"Doctor":
+		{
+			"id": "8",
+			"Name": "Sasha",
+			"Surname": "Melnyk",
+			"StartWorkingTime": "07:30",	 
+			"FinishWorkingTime": "17:30"
+		},
+		"Symphtoms":"asld'kasdasdsad",
+		"Diagnosis":
+		{
+			"Id":"1",
+			"Name":"Broken leg",
+			"Description":"Left leg was broken in case then the patient was walking down the street and fell asleep"
+		}
+	},
+	{
+		"Id":"4",
+		"Type":"Vaccine",
+		"Name":"asdja;sld",
+		"Description": "Death there mirth way the noisy merit. Piqued shy spring nor six though mutual living ask extent. Replying of dashwood advanced ladyship smallest disposal or...",
+		"Doctor":
+		{
+			"id": "8",
+			"Name": "Sasha",
+			"Surname": "Melnyk",
+			"StartWorkingTime": "07:30",	 
+			"FinishWorkingTime": "17:30"
+		}
+	},
+	{
+		"Id":"3",
+		"Type":"Examination",
+		"Name":"MRT",
+		"Description": "Death there mirth way the noisy merit. Piqued shy spring nor six though mutual living ask extent. Replying of dashwood advanced ladyship smallest disposal or...",
+		"Doctor":
+		{
+			"id": "8",
+			"Name": "Sasha",
+			"Surname": "Melnyk",
+			"StartWorkingTime": "07:30",	 
+			"FinishWorkingTime": "17:30"
+		},
+		"Symphtoms":"asld'kasdasdsad",
+		"Diagnosis":
+		{
+			"Id":"1",
+			"Name":"asdlaskdj",
+			"Description":"asdasfdljkafladfk"
+		}
+	},
+	{
+		"Id":"2",
+		"Type":"Examination",
+		"Name":"Leg exam",
+		"Description": "Death there mirth way the noisy merit. Piqued shy spring nor six though mutual living ask extent. Replying of dashwood advanced ladyship smallest disposal or...",
+		"Doctor":
+		{
+			"id": "8",
+			"Name": "Sasha",
+			"Surname": "Melnyk",
+			"StartWorkingTime": "07:30",	 
+			"FinishWorkingTime": "17:30"
+		},
+		"Symphtoms":"asld'kasdasdsad",
+		"Diagnosis":
+		{
+			"Id":"1",
+			"Name":"asdlaskdj",
+			"Description":"asdasfdljkafladfk"
+		}
+	},
+	{
+		"Id":"1",
+		"Type":"Examination",
+		"Name":"X-Rey",
+		"Description": "Death there mirth way the noisy merit. Piqued shy spring nor six though mutual living ask extent. Replying of dashwood advanced ladyship smallest disposal or...",
+		"Doctor":
+		{
+			"id": "8",
+			"Name": "Sasha",
+			"Surname": "Melnyk",
+			"StartWorkingTime": "07:30",	 
+			"FinishWorkingTime": "17:30"
+		},
+		"Symphtoms":"asld'kasdasdsad",
+		"Diagnosis":
+		{
+			"Id":"1",
+			"Name":"asdlaskdj",
+			"Description":"asdasfdljkafladfk"
+		}
+	}
+]

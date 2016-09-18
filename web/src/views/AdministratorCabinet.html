@@ -1,0 +1,60 @@
+<div class="container-fluid">
+    <div class="row defaultMargin">
+        <div class="panel-body col-md-2 col-sm-3">
+            <img src="{{admin.URLImage}}" class="img-thumbnail profileAvatar" alt="Profile Avatar">
+            <h3>{{admin.Name}} {{admin.Surname}}</h3>
+
+            <div class="btn-group-vertical profileButtonMenu" role="group" aria-label="Menu">
+                <button class="btn btn-default" ng-click="selectView('registerEmployeeView',false)">Register Employee</button>
+                <button class="btn btn-default"  ng-click="selectView('doctorsView',true)">View Doctors</button>
+                <button class="btn btn-default"   ng-click="selectView('patientsView',true)">View Patients</button>
+                <button class="btn btn-default"  ng-click="selectView('employeeView',true)">View Employees</button>
+                <button class="btn btn-default"  ng-click="selectView('medicationsView',false)">List of Medication</button>
+                <button class="btn btn-default"  ng-click="selectView('newDepartment',false)">Add Department</button>
+                <button class="btn btn-default col-md-12" data-toggle="modal" data-target="#adminSettingsTemplate">Settings</button>
+            </div>
+        </div>
+        <div class="col-md-9 col-sm-9  container-fluid mycontent-left">
+            <div  class="mycontent-bottom col-lg-12 row" ng-Show="needSearch">
+
+
+
+
+                <div class=" col-lg-5" style="margin-bottom:10px">
+                    <h3>Search by name/surname</h3>
+                    <div class="input-group col-md-12 col-sm-12">
+                      <input type="text" class="form-control" placeholder="Search" ng-model="pagingInfo.search" name="q">
+                      <div class="input-group-btn">
+                          <button class="btn btn-default" ng-click="AdminFilter()">
+                              <i class="glyphicon glyphicon-search"></i>
+                          </button>
+                      </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-3" ng-show="isActiveShow">
+                    <h3>IsActive</h3>
+                    <select ng-model="pagingInfo.isActive" class="form-control" ng-change="AdminFilter()">
+                      <option value=""> All </option>
+                      <option value="false"> Disabled</option>
+                      <option value="true">Enabled</option>
+
+                    </select>
+                </div>
+            </div>
+
+            <div ng-switch on="selectedView">
+                <div  ng-switch-when="doctorsView" table-view="doctorsView"></div>
+                <div  ng-switch-when="patientsView" table-view="patientsView"></div>
+                <div  ng-switch-when="registerEmployeeView" table-view="registerEmployeeView"></div>
+                <div  ng-switch-when="employeeView" table-view="employeeView"></div>
+                <div  ng-switch-when="medicationsView" table-view="medicationsView"></div>
+                <div  ng-switch-when="newDepartment" table-view="newDepartment">
+                </div>
+            </div>
+
+            <div settings="password"></div>
+
+
+        </div>
+    </div>
+</div>

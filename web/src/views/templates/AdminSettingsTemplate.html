@@ -1,0 +1,43 @@
+
+        <!-- Modal -->
+        <div class="modal fade" id="adminSettingsTemplate" role="dialog">
+            <div class="modal-dialog modal-md">
+                <div class="modal-content container-fluid">
+
+
+                    <div class="modal-header">
+                        <button class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title">Change password</h4>
+                    </div>
+                    <br><br>
+                    <form class="form-horizontal" >
+                      <div class="form-group">
+                          <label for="prevpassword" class="col-sm-3 control-label">Previous password</label>
+                          <div class="col-sm-9">
+                              <input type="password" id="prevpassword" placeholder="Previous password" ng-model="ChangePass.OldPass" class="form-control" required pattern="^\S{6,}$">
+                          </div>
+                      </div>
+
+                      <div class="form-group">
+                          <label for="newpassword" class="col-sm-3 control-label">New password</label>
+                          <div class="col-sm-9">
+                              <input type="password" placeholder="New password" ng-model="ChangePass.NewPass" class="form-control" id="newpassword"  pattern="^\S{6,}$" required>
+                          </div>
+                      </div>
+
+
+                      <br><br>
+                      <div class="form-group">
+                          <div class="row">
+                              <!--<button type="submit" class="btn btn-primary btn-block">Register</button>-->
+                              <div class="col-xs-6 col-md-6 col-xs-offset-3">
+                                  <input type="submit" value="Change" class="btn btn-primary btn-block btn-lg" ng-click="ChangePassword()" data-dismiss="modal"  tabindex="7">
+                              </div>
+                          </div>
+                      </div>
+
+                    </form>
+
+                </div>
+            </div>
+        </div>

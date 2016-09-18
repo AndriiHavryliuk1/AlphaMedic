@@ -1,0 +1,29 @@
+{
+  "name": "alphamedic",
+  "description": "Service for medical institutions",
+  "main": "index.js",
+  "authors": [
+    "alpha team"
+  ],
+  "license": "ISC",
+  "keywords": [
+    "alphamedic"
+  ],
+  "homepage": "index.html",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "^3.3.6",
+    "jquery-ui": "^1.12.0",
+    "font-awesome": "^4.6.3",
+    "jquery": "^3.1.0",
+    "angular": "angularjs#^1.5.8",
+    "eonasdan-bootstrap-datetimepicker": "^4.17.37"
+  },
+  "devDependencies": {}
+}
