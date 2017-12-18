@@ -1,13 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Data.Entity;
-using System.Data.Entity.Infrastructure;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Web.Http;
-using System.Web.Http.Description;
 using Rest.Models;
 using Rest.Models.AlphaMedicContext;
 using Microsoft.AspNetCore.JsonPatch;
@@ -20,7 +14,7 @@ namespace Rest.Controllers
     public class DepartmentsController : ApiController
     {
 
-        private AlphaMedicContext db = new AlphaMedicContext();
+        private readonly AlphaMedicContext db = new AlphaMedicContext();
 
         public DepartmentsController() { }
 
@@ -29,7 +23,6 @@ namespace Rest.Controllers
             db = context;
         }
 
-        // GET: api/Departments
         [Route("")]
         public IEnumerable<DepartmentDto> GetDepartments()
         {
@@ -49,11 +42,10 @@ namespace Rest.Controllers
             }
         }
 
-        // GET: api/Departments/5
         [Route("{id:int}")]
         public IHttpActionResult GetDepartment(int id, [FromUri] bool all = true)
         {
-            Department department = db.Departments.FirstOrDefault(x => x.DepartmentId == id);
+            var department = db.Departments.FirstOrDefault(x => x.DepartmentId == id);
             if (department == null)
             {
                 return NotFound();
@@ -68,7 +60,7 @@ namespace Rest.Controllers
                 DepartmentId = x.DepartmentId,
                 FeedbackId = x.FeedbackId,
                 PatientFullName = (x.Patient == null ? "Anonymous" : x.Patient.Name + " " + x.Patient.Surname),
-                 PatientURLImage = (x.Patient == null ? Constants.ThisServer + Constants.DefaultPatientImage : Constants.ThisServer + x.Patient.URLImage)
+                PatientURLImage = (x.Patient == null ? Constants.ThisServer + Constants.DefaultPatientImage : Constants.ThisServer + x.Patient.URLImage)
             });
 
             ShortUserDto HeadDepartment = null;
@@ -95,7 +87,6 @@ namespace Rest.Controllers
             return Ok(a);
         }
 
-        //GET: api/departments/5/Doctors
         [Route("{id:int}/doctors")]
         public IEnumerable<DoctorDto> GetDepartmentDoctors(int id)
         {
@@ -123,9 +114,7 @@ namespace Rest.Controllers
             }
         }
 
-     
-
-        // POST: api/Departments
+    
         [Route("")]
         [Authorize(Roles=Roles.Administrator)]
         public IHttpActionResult PostDepartment(Department department)
@@ -165,22 +154,6 @@ namespace Rest.Controllers
             return Ok();
         }
 
-        // DELETE: api/Departments/5
-     /*   [ResponseType(typeof(Department))]
-        public IHttpActionResult DeleteDepartment(int id)
-        {
-            Department department = db.Departments.Find(id);
-            if (department == null)
-            {
-                return NotFound();
-            }
-
-            db.Departments.Remove(department);
-            db.SaveChanges();
-
-            return Ok(department);
-        }*/
-
         protected override void Dispose(bool disposing)
         {
             if (disposing)
@@ -188,11 +161,6 @@ namespace Rest.Controllers
                 db.Dispose();
             }
             base.Dispose(disposing);
-        }
-
-        private bool DepartmentExists(int id)
-        {
-            return db.Departments.Count(e => e.DepartmentId == id) > 0;
         }
     }
 }

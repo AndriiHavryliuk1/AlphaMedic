@@ -7,7 +7,7 @@
             <div ng-switch="user.DoctorType">
                 <div class="btn-group-vertical col-md-12  profileButtonMenu" role="group" aria-label="Menu">
 
-                    <button class="btn btn-default " onclick="location=this.value" value="#/schedule/{{user.UserId}}">Schedule </button>
+                    <button class="btn btn-default " onclick="location=this.value" value="#/schedule/{{user.ScheduleId}}">Schedule </button>
                     <button class="btn btn-default" onclick="location=this.value" value="#/patients?page=1&doctor={{user.UserId}}">Patients</button>
                     <button class="btn  btn-default" data-toggle="modal" data-target="#settingsModalView">Settings</button>
 
@@ -22,6 +22,15 @@
                 <h2>Upcoming appointments</h2>
             </div>
             <div appointment-list="doctorAppointments"></div>
+            <div class="container-fluid" ng-show="AnyAppointments">
+              <br><br><br><br>
+              <br><br><br><br>
+              <br><br><br><br>
+              <h2 class="text-muted text-center">You have no upcoming appointments</h2>
+              <br><br><br><br>
+              <br><br><br><br>
+              <br><br><br><br>
+            </div>
         </div>
     </div>
     <div settings="doctorCabinet"></div>

@@ -1,0 +1,1 @@
+H:\AlphaMedic\AlphaMedic\.sonarqube\out\\AuthorizationServer_6128

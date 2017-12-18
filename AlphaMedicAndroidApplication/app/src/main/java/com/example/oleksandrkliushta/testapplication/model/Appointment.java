@@ -17,15 +17,15 @@ public class Appointment
     public String Name;
     public String Description;
 
-    public Date DateTime;
-    public Time Duration;
+    public String Date;
+    public String Duration;
 
     public Appointment() {}
 
-    public Appointment(Date dateTime, String description) {
-        this.DateTime = dateTime;
+    public Appointment(String dateTime, String description) {
+        this.Date = dateTime;
         this.Description = description;
-        this.State = AppointmentState.Accepted;
+        this.State = AppointmentState.Unconfirmed;
     }
 
     public enum AppointmentState

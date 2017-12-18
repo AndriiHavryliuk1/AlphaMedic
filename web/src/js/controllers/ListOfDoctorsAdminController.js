@@ -41,6 +41,7 @@ app.controller('ListOfDoctorsAdminController', function(URL_FOR_REST, $rootScope
     }];
 
     $scope.loadList = function() {
+        $scope.doctors = null;
         $http.get(URL_FOR_REST.url + "api/Doctors", {
                 params: $rootScope.pagingInfo
             })
@@ -52,8 +53,8 @@ app.controller('ListOfDoctorsAdminController', function(URL_FOR_REST, $rootScope
             })
 
         $location.search('search', $rootScope.pagingInfo.search);
-      //  $location.search('page', $rootScope.pagingInfo.page);
-      FilterService.setPage($rootScope.pagingInfo.page);
+        //  $location.search('page', $rootScope.pagingInfo.page);
+        FilterService.setPage($rootScope.pagingInfo.page);
         $location.search('isActive', $rootScope.pagingInfo.isActive);
         if ($rootScope.pagingInfo.search == '') {
             $location.search('search', null);
@@ -77,12 +78,17 @@ app.controller('ListOfDoctorsAdminController', function(URL_FOR_REST, $rootScope
         });
 
     $scope.ChangeUser = function() {
-        ChangeUserInfoService.ChangeDoctor($scope.user, $scope.user.UserId);
+        ChangeUserInfoService.ChangeDoctor($scope.prevdoctor, $scope.user, $scope.user.UserId, $scope);
 
     };
 
     $scope.GetData = function(doctor) {
         $scope.user = doctor;
+        $scope.user.SelectedDepartment= {
+          DepartmentId:$scope.user.DepartmentId,
+          Name:$scope.user.DepartmentName
+        }
+        $scope.prevdoctor = angular.copy(doctor)
     };
 
 

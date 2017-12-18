@@ -28,7 +28,19 @@ var addButtons = function(data, $rootScope, $element, USER_ROLES) {
 
         $rootScope.canRegister = data.role == USER_ROLES.patient || data.role == "guest" || data == "guest";
         $element.empty();
-        $element.append(buutonsCode(data.id, $rootScope.isDoctor, $rootScope.canRegister));
+
+        $element.append(buutonsCode(data.id, $rootScope.isDoctor, $rootScope.canRegister,null));
+
+        $rootScope.$watch("ScheduleId",function(){
+
+            if($rootScope.ScheduleId!=null)
+            {
+              $element.empty();
+
+              $element.append(buutonsCode(data.id, $rootScope.isDoctor, $rootScope.canRegister,$rootScope.ScheduleId));
+            }
+
+        })
     }
     /*
     ng-class="GetChecked() == 'departments' ? 'active' : ''"
@@ -37,34 +49,34 @@ var addButtons = function(data, $rootScope, $element, USER_ROLES) {
     ng-show="isDoctor" ng-class="GetChecked() == 'schedule' ? 'active' : ''"
     ng-class="GetChecked() == 'registrationForAppointment' ? 'active' : ''"
     */
-var buutonsCode = function(id, isDoctor, canRegister) {
+var buutonsCode = function(id, isDoctor, canRegister,scheduleId) {
     var button1 = `<ul class="nav navbar-nav col-lg-7 col-md-7 col-sm-7">
-                    <li ng-class="getPath() =='/departments' ? 'active' : ''" > <a   href="#/departments">Departments</a>
+                    <li ng-class="getPath2 == '/departments' ? 'active' : ''" > <a   href="#/departments">Departments</a>
                 </li>`;
 
     var button2 = "";
     if (!isDoctor) {
-        button2 = ` <li ng-class="getPath() =='/doctors' ? 'active' : ''">
+        button2 = ` <li ng-class="getPath2 == '/doctors' ? 'active' : ''">
                         <a  href="#/doctors?page=1">Doctors</a>
                 </li>`;
     }
     var button3 = "";
     if (isDoctor) {
-        button3 = ` <li  ng-class="getPath() =='/patients' ? 'active' : ''">
+        button3 = ` <li  ng-class="getPath2 == '/patients' ? 'active' : ''">
                           <a   href="#/patients?page=1&doctor=` + id + `">Patients</a>
                     </li >`;
     }
 
     var button4 = "";
     if (isDoctor) {
-        button4 = ` <li ng-class="getPath()=='/schedule/`+id+`' ? 'active' : ''">
-                        <a href="#/schedule/` + id + `">Schedule</a>
+        button4 = ` <li ng-class="getPath2 == '/schedule' ? 'active' : ''">
+                        <a href="#/schedule/` + scheduleId + `">Schedule</a>
                     </li>`;
     }
 
     var end = "";
     if (canRegister) {
-        end = `<li  ng-class="getPath() =='/registrationForAppointment' ? 'active' : ''" >
+        end = `<li  ng-class="getPath2 == '/registrationForAppointment' ? 'active' : ''" >
                     <a href="#/registrationForAppointment">Register for appointment</a>
                 </li>
             </ul>`;

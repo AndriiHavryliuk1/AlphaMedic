@@ -14,6 +14,7 @@ import android.view.View;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.TimePicker;
+import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.DefaultRetryPolicy;
@@ -32,10 +33,16 @@ import com.example.oleksandrkliushta.testapplication.model.Constants;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import org.jose4j.jwt.JwtClaims;
+import org.jose4j.jwt.MalformedClaimException;
+import org.jose4j.jwt.consumer.InvalidJwtException;
+import org.jose4j.jwt.consumer.JwtConsumer;
+import org.jose4j.jwt.consumer.JwtConsumerBuilder;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.lang.reflect.Type;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Date;
 import java.text.Format;
 import java.text.SimpleDateFormat;
@@ -79,9 +86,10 @@ public class AppointmentsActivity extends AppCompatActivity {
                 try {
                     Gson gson = new Gson();
                     Type type = new TypeToken<List<Appointment>>(){}.getType();
-                    ArrayList<Appointment> contactList = gson.fromJson(list.toString(), type);
-                    mAppointmentsList = contactList;
+                    mAppointmentsList = gson.fromJson(list.toString(), type);
                     adapter = new AppointmentAdapter(mAppointmentsList);
+                    // specify an adapter (see also next example)
+                    mRecyclerView.setAdapter(adapter);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -113,12 +121,9 @@ public class AppointmentsActivity extends AppCompatActivity {
                 DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
                 DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
         requestManager.add(fileRequest);
-
         // use a linear layout manager
         LinearLayoutManager mLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLayoutManager);
-        // specify an adapter (see also next example)
-        mRecyclerView.setAdapter(adapter);
     }
 
     /**
@@ -195,7 +200,7 @@ public class AppointmentsActivity extends AppCompatActivity {
             EditText symptomsEditText = (EditText) newAppointentDialog.getWindow().
                     findViewById(R.id.symptomsEditText);
 
-            appointment = new Appointment(appointmentTimeDate,
+            appointment = new Appointment(stringTimeDate,
                     symptomsEditText.getText().toString());
 
             String requestURL = Constants.URL_FOR_REST+"api/appointments";
@@ -203,8 +208,11 @@ public class AppointmentsActivity extends AppCompatActivity {
                 @Override
                 public void onResponse(JSONObject list) {
                     try {
+                        appointment.Name="";
+                        appointment.Surname="";
                         mAppointmentsList.add(appointment);
                         mRecyclerView.getAdapter().notifyItemInserted(mAppointmentsList.size()-1);
+                        Toast.makeText(getApplicationContext(),"Success! Appointment added",Toast.LENGTH_SHORT).show();
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -214,13 +222,40 @@ public class AppointmentsActivity extends AppCompatActivity {
             Response.ErrorListener errorListener = new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
-                    Log.w("Volley Error", error.getMessage());
+                    Toast.makeText(getApplicationContext(),"Server erorr! Please try again later",Toast.LENGTH_SHORT).show();
                 }
             };
             HashMap<String, String> newAppointment = new HashMap<String, String>();
+            /*String publicKeyPEM = "31bf3856ad364e35";
+
+            // decode to its constituent bytes
+            BASE64Decoder base64Decoder = new BASE64Decoder();
+            byte[] publicKeyBytes = base64Decoder.decodeBuffer(publicKeyPEM);
+
+            // create a key object from the bytes
+            X509EncodedKeySpec keySpec = new X509EncodedKeySpec(publicKeyBytes);
+            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+            PublicKey publicKey = keyFactory.generatePublic(keySpec);
+            JwtConsumer jwtConsumer = new JwtConsumerBuilder()
+                    .setRequireExpirationTime()
+                    .setVerificationKey()
+                    .build();
+
+            // validate and decode the jwt
+            try {
+                JwtClaims jwtDecoded = jwtConsumer.processToClaims(getSharedPreferences(Constants.MY_PREFS_NAME, MODE_PRIVATE).getString("token","null"));
+                String username = jwtDecoded.getStringClaimValue("id");
+            }
+            catch(InvalidJwtException e) {
+
+            }
+            catch (MalformedClaimException e)
+            {
+
+            }*/
             newAppointment.put("Description",symptomsEditText.getText().toString());
             newAppointment.put("PatientId","17");
-            newAppointment.put("DateTime",appointmentTimeDate.toString());
+            //newAppointment.put("Date", appointmentTimeDate.toString());
 
             JsonObjectRequest fileRequest = new JsonObjectRequest(Request.Method.POST, requestURL,new JSONObject(newAppointment) ,jsonListener,errorListener){
 

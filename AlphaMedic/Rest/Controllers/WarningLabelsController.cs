@@ -47,7 +47,7 @@ namespace Rest.Controllers
             {
                 return Content(HttpStatusCode.Forbidden, Messages.AccsesDenied);
             }
-            if (this.User.IsInRole(Roles.Patinet) &&  warningLabel.MedicalHistory.Patient.UserId != currentUser.UserId)
+            if (this.User.IsInRole(Roles.Patient) &&  warningLabel.MedicalHistory.Patient.UserId != currentUser.UserId)
             {
                 return Content(HttpStatusCode.Forbidden, Messages.AccsesDenied);
             }

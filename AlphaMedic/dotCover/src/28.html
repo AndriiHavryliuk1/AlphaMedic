@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>H:\AlphaMedic\AlphaMedic\Rest\Models\Procedure.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace Rest.Models
+{
+    [Table(&quot;Procedures&quot;)]
+    public abstract class Procedure
+    {
+        [Key, ForeignKey(&quot;Appointment&quot;)]
+        public int? ProcedureId { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        
+        public int? MedicalHistoryId { get; set; }
+                
+        public DateTime Date { get; set; }
+        public decimal? Price { get; set; }
+       
+        public virtual MedicalHistory MedicalHistory { get; set; }        
+        public virtual Appointment Appointment { get; set; }
+    }
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[12,35,12,39,0],[12,40,12,44,0],[13,30,13,34,0],[13,35,13,39,0],[14,37,14,41,0],[14,42,14,46,0],[16,40,16,44,0],[16,45,16,49,0],[18,32,18,36,0],[18,37,18,41,0],[19,33,19,37,0],[19,38,19,42,0],[21,56,21,60,0],[21,61,21,65,0],[22,50,22,54,0],[22,55,22,59,0]]);
+    </script>
+  </body>
+</html>

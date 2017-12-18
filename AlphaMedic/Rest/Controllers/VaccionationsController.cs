@@ -13,55 +13,55 @@ using Rest.Models.AlphaMedicContext;
 
 namespace Rest.Controllers
 {
-    public class VaccionationsController : ApiController
+    public class VaccinationsController : ApiController
     {
         private AlphaMedicContext db = new AlphaMedicContext();
 
-        // GET: api/Vaccionations
+        // GET: api/Vaccinations
         public IQueryable GetProcedures()
         {
             return db.Procedures;
         }
 
-        // GET: api/Vaccionations/5
+        // GET: api/Vaccinations/5
         [Authorize]
-        [ResponseType(typeof(Vaccionation))]
-        public IHttpActionResult GetVaccionation(int id)
+        [ResponseType(typeof(Vaccination))]
+        public IHttpActionResult GetVaccination(int id)
         {
             var currentUser = db.Users.FirstOrDefault(x => x.Email == this.User.Identity.Name);
           
                        
-            Vaccionation vaccionation = (Vaccionation)db.Procedures.Find(id);
+            Vaccination vaccination = (Vaccination)db.Procedures.Find(id);
 
-            if(this.User.IsInRole(Roles.Patinet) && vaccionation.Appointment.PatientId!=currentUser.UserId)
+            if(this.User.IsInRole(Roles.Patient) && vaccination.Appointment.PatientId!=currentUser.UserId)
             {
                 return Content(HttpStatusCode.Forbidden, Messages.AccsesDenied);
             }
 
-            if (vaccionation == null)
+            if (vaccination == null)
             {
                 return NotFound();
             }
 
-            return Ok(vaccionation);
+            return Ok(vaccination);
         }
 
-        // PUT: api/Vaccionations/5
+        // PUT: api/Vaccinations/5
         [Authorize(Roles = Roles.AllDoctors)]
         [ResponseType(typeof(void))]
-        public IHttpActionResult PutVaccionation(int id, Vaccionation vaccionation)
+        public IHttpActionResult PutVaccination(int id, Vaccination vaccination)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            if (id != vaccionation.ProcedureId)
+            if (id != vaccination.ProcedureId)
             {
                 return BadRequest();
             }
 
-            db.Entry(vaccionation).State = EntityState.Modified;
+            db.Entry(vaccination).State = EntityState.Modified;
 
             try
             {
@@ -69,7 +69,7 @@ namespace Rest.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!VaccionationExists(id))
+                if (!VaccinationExists(id))
                 {
                     return NotFound();
                 }
@@ -82,10 +82,10 @@ namespace Rest.Controllers
             return StatusCode(HttpStatusCode.NoContent);
         }
 
-        // POST: api/Vaccionations
+        // POST: api/Vaccinations
         [Authorize(Roles =Roles.AllDoctors)]
-        [ResponseType(typeof(Vaccionation))]
-        public IHttpActionResult PostVaccionation(Vaccionation vaccionation)
+        [ResponseType(typeof(Vaccination))]
+        public IHttpActionResult PostVaccination(Vaccination vaccination)
         {
             if (!ModelState.IsValid)
             {
@@ -94,19 +94,20 @@ namespace Rest.Controllers
 
 
             //check if procedure already set
-            if (db.Procedures.FirstOrDefault(x => x.ProcedureId == vaccionation.ProcedureId) != null)
+            if (db.Procedures.FirstOrDefault(x => x.ProcedureId == vaccination.ProcedureId) != null)
                 return Content(HttpStatusCode.Conflict, "Procedure existed!");
 
 
-            db.Procedures.Add(vaccionation);
+            db.Procedures.Add(vaccination);
 
             try
             {
                 db.SaveChanges();
+                
             }
             catch (DbUpdateException)
             {
-                if (VaccionationExists((int)vaccionation.ProcedureId))
+                if (VaccinationExists((int)vaccination.ProcedureId))
                 {
                     return Conflict();
                 }
@@ -116,7 +117,7 @@ namespace Rest.Controllers
                 }
             }
 
-            return CreatedAtRoute("DefaultApi", new { id = vaccionation.ProcedureId }, vaccionation);
+            return CreatedAtRoute("DefaultApi", new { id = vaccination.ProcedureId }, vaccination);
         }
         /*
         // DELETE: api/Vaccionations/5
@@ -144,7 +145,7 @@ namespace Rest.Controllers
             base.Dispose(disposing);
         }
 
-        private bool VaccionationExists(int id)
+        private bool VaccinationExists(int id)
         {
             return db.Procedures.Count(e => e.ProcedureId == id) > 0;
         }

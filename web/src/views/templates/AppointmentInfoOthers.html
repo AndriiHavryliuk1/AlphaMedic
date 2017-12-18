@@ -19,7 +19,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-4" ng-show="isDoctorAssigned">
                 <div class="row">
                     <div class="col-md-5">
                         <a href="#/doctors/{{appointment.DoctorId}}"><img src="{{appointment.DoctorURLImage}}" alt="avatar" width="150" height="150"></a>
@@ -47,7 +47,7 @@
         <div class="row">
             <label class="col-md-2 control-label">Symptoms*</label>
             <div class="form-group col-md-4">
-                <textarea class="form-control" rows="5" id="symptoms" readonly>{{appointment.Description}}</textarea>
+                <textarea class="form-control" style="resize:none;" rows="5" id="symptoms" readonly>{{appointment.Description}}</textarea>
             </div>
         </div>
         <div class="row">
@@ -59,7 +59,7 @@
         <div class="row">
             <label class="col-md-2 control-label">State</label>
             <div class='form-group col-md-2'>
-                <label class="control-label">{{appointment.State}}</label>
+                <label class="control-label">{{stateString}}</label>
             </div>
         </div>
         <div class="row">
@@ -82,6 +82,11 @@
                 <button class=" btn btn-default col-md-12" ng-hide="hideSetResultButton" data-toggle="modal" data-target="#ResultModal">Set Result</button>
             </div>
         </div>
+        <div class="row">
+            <div class="form-group col-md-3">
+                <button class=" btn btn-default col-md-12" ng-show="showFinishButton" data-toggle="modal" ng-click="FinishAppointment()">Finish Appointment</button>
+            </div>
+        </div>
     </div>
     <!--Procedure View Short-->
     <div class="panel panel-default defaultMargin">
@@ -102,10 +107,10 @@
                     <div ng-show="showDiagnosis">
                         <h3>Diagnosis:</h3>
                         <ul>
-                            <h4>
-                                {{procedure.Diagnosis.Name}}</h4>
-                            <h5>
-                                {{procedure.Diagnosis.Description}}</h5>
+                            <h4 ng-model="procedure.Diagnosis.Name"></h4>
+                          {{procedure.Diagnosis.Name}} </h4>
+                            <h5 ng-model="procedure.Diagnosis.Description">
+                            {{procedure.Diagnosis.Description}}</h5>
                         </ul>
                     </div>
                     <div ng-show="showResult">
@@ -120,8 +125,7 @@
 
             </div>
             <div class="alert alert-info" ng-hide="showProcedure">
-                <strong>Sorry!</strong>
-                Procedure hasn't set for this appointment yet.
+                <strong>Sorry!</strong> Procedure hasn't set for this appointment yet.
             </div>
         </div>
     </div>
@@ -142,7 +146,7 @@
                     <div class="form-group">
                         <label for="name" class="col-sm-5 control-label">Result:</label>
                         <div class="col-sm-7">
-                            <textarea class="form-control" rows="5" ng-model="procedure.Result" required></textarea>
+                            <textarea class="form-control" style="resize:none;" rows="5" ng-model="procedure.Result" required></textarea>
                         </div>
                     </div>
                     <br>
@@ -171,13 +175,13 @@
                     <div class="form-group">
                         <label for="name" class="col-sm-3 control-label">Name:</label>
                         <div class="col-sm-9">
-                            <input type="text" id="name" placeholder="Name" ng-model="Diagnosis.Name" class="form-control" autofocus required maxlength="30">
+                            <input type="text" id="name" placeholder="Name" ng-model="Diagnosis.Name" class="form-control"  required maxlength="30">
                         </div>
                     </div>
                     <div class="form-group">
                         <label for="description" class="col-sm-3 control-label">Description:</label>
                         <div class="col-sm-9">
-                            <textarea class="form-control" required rows="5" id="description" ng-model="Diagnosis.Description"></textarea>
+                            <textarea class="form-control"  style="resize:none;" required rows="5" id="description" ng-model="Diagnosis.Description"></textarea>
                         </div>
                     </div>
                     <br>
@@ -206,20 +210,21 @@
                     <div class="form-group">
                         <label for="name" class="col-sm-5 control-label">Choose medications:</label>
                         <div class="col-sm-7">
-                            <select class="form-control" ng-model="medications" multiple ng-options="med as med.Description for med in meds"></div>
+                            <select class="form-control" ng-model="medications" multiple ng-options="med as med.Description for med in meds">
                         </div>
                     </div>
-                    <br>
-                    <div class="form-group">
-                        <div class="row">
-                            <div class="col-xs-6 col-md-6 col-xs-offset-3">
-                                <input type="submit" value="Add Medications" ng-click="AddMedications()" class="btn btn-primary btn-block btn-lg" data-dismiss="modal" tabindex="7">
-                            </div>
-                        </div>
-                    </div>
-                </form>
             </div>
+            <br>
+            <div class="form-group">
+                <div class="row">
+                    <div class="col-xs-6 col-md-6 col-xs-offset-3">
+                        <input type="submit" value="Add Medications" ng-click="AddMedications()" class="btn btn-primary btn-block btn-lg" data-dismiss="modal" tabindex="7">
+                    </div>
+                </div>
+            </div>
+            </form>
         </div>
     </div>
+</div>
 
 </div>

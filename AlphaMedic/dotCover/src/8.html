@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>H:\AlphaMedic\AlphaMedic\Rest\Startup.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using Owin;
+using Microsoft.Owin;
+using System.Web.Http;
+
+[assembly: OwinStartup(typeof(Rest.Startup))]
+namespace Rest
+{
+    public partial class Startup
+    {
+        public void Configuration(IAppBuilder app)
+        {
+            ConfigureAuth(app);
+            //var config = ConfigureWebApi();            
+            //app.UseWebApi(config);
+        }
+
+
+        private HttpConfiguration ConfigureWebApi()
+        {
+            var config = new HttpConfiguration();
+
+            config.Routes.MapHttpRoute(
+                &quot;DefaultApi&quot;,
+                &quot;api/{controller}/{id}&quot;,
+                new { id = RouteParameter.Optional });
+            return config;
+        }
+
+        
+
+    }
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[11,9,11,10,0],[12,13,12,32,0],[15,9,15,10,0],[19,9,19,10,0],[20,13,20,50,0],[22,13,25,55,0],[26,13,26,27,0],[27,9,27,10,0]]);
+    </script>
+  </body>
+</html>

@@ -9,7 +9,7 @@ namespace Rest.Models
 {
     public class UserClaim
     {        
-        UserClaim()
+        public UserClaim()
         {
             Users = new List<User>();
         }

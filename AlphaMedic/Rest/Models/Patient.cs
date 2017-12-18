@@ -16,15 +16,15 @@ namespace Rest.Models
             Feedbacks = new List<Feedback>();
         }
 
-       
+
         public int? MedicalHistoryId { get; set; }
         public int? BloodGroupId { get; set; }
 
-         
+
         public virtual MedicalHistory MedicalHistory { get; set; }
         public virtual BloodGroup BloodGroup { get; set; }
-        public virtual ICollection<Appointment> Appointments { get; private set; }
-        public virtual ICollection<Feedback> Feedbacks { get; private set; }
+        public virtual ICollection<Appointment> Appointments { get; set; }
+        public virtual ICollection<Feedback> Feedbacks { get; set; }
 
         [NotMapped]
         public string FullName { get { return this.Name + " " + this.Surname; } }

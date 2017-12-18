@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>H:\AlphaMedic\AlphaMedic\Rest\Controllers\VaccionationsController.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Web.Http;
+using System.Web.Http.Description;
+using Rest.Models;
+using Rest.Models.AlphaMedicContext;
+
+namespace Rest.Controllers
+{
+    public class VaccinationsController : ApiController
+    {
+        private AlphaMedicContext db = new AlphaMedicContext();
+
+        // GET: api/Vaccinations
+        public IQueryable GetProcedures()
+        {
+            return db.Procedures;
+        }
+
+        // GET: api/Vaccinations/5
+        [Authorize]
+        [ResponseType(typeof(Vaccination))]
+        public IHttpActionResult GetVaccination(int id)
+        {
+            var currentUser = db.Users.FirstOrDefault(x =&gt; x.Email == this.User.Identity.Name);
+          
+                       
+            Vaccination vaccination = (Vaccination)db.Procedures.Find(id);
+
+            if(this.User.IsInRole(Roles.Patient) &amp;&amp; vaccination.Appointment.PatientId!=currentUser.UserId)
+            {
+                return Content(HttpStatusCode.Forbidden, Messages.AccsesDenied);
+            }
+
+            if (vaccination == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(vaccination);
+        }
+
+        // PUT: api/Vaccinations/5
+        [Authorize(Roles = Roles.AllDoctors)]
+        [ResponseType(typeof(void))]
+        public IHttpActionResult PutVaccination(int id, Vaccination vaccination)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            if (id != vaccination.ProcedureId)
+            {
+                return BadRequest();
+            }
+
+            db.Entry(vaccination).State = EntityState.Modified;
+
+            try
+            {
+                db.SaveChanges();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!VaccinationExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return StatusCode(HttpStatusCode.NoContent);
+        }
+
+        // POST: api/Vaccinations
+        [Authorize(Roles =Roles.AllDoctors)]
+        [ResponseType(typeof(Vaccination))]
+        public IHttpActionResult PostVaccination(Vaccination vaccination)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+
+            //check if procedure already set
+            if (db.Procedures.FirstOrDefault(x =&gt; x.ProcedureId == vaccination.ProcedureId) != null)
+                return Content(HttpStatusCode.Conflict, &quot;Procedure existed!&quot;);
+
+
+            db.Procedures.Add(vaccination);
+
+            try
+            {
+                db.SaveChanges();
+                
+            }
+            catch (DbUpdateException)
+            {
+                if (VaccinationExists((int)vaccination.ProcedureId))
+                {
+                    return Conflict();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return CreatedAtRoute(&quot;DefaultApi&quot;, new { id = vaccination.ProcedureId }, vaccination);
+        }
+        /*
+        // DELETE: api/Vaccionations/5
+        [ResponseType(typeof(Vaccionation))]
+        public IHttpActionResult DeleteVaccionation(int id)
+        {
+            var vaccionation = db.Procedures.Find(id);
+            if (vaccionation == null)
+            {
+                return NotFound();
+            }
+
+            db.Procedures.Remove(vaccionation);
+            db.SaveChanges();
+
+            return Ok(vaccionation);
+        }*/
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                db.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        private bool VaccinationExists(int id)
+        {
+            return db.Procedures.Count(e =&gt; e.ProcedureId == id) &gt; 0;
+        }
+    }
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[18,9,18,64,0],[22,9,22,10,0],[23,13,23,34,0],[24,9,24,10,0],[30,9,30,10,0],[31,13,31,96,0],[34,13,34,75,0],[36,13,36,107,0],[37,13,37,14,0],[38,17,38,81,0],[41,13,41,37,0],[42,13,42,14,0],[43,17,43,35,0],[46,13,46,36,0],[47,9,47,10,0],[53,9,53,10,0],[54,13,54,37,0],[55,13,55,14,0],[56,17,56,47,0],[59,13,59,47,0],[60,13,60,14,0],[61,17,61,37,0],[64,13,64,64,0],[67,13,67,14,0],[68,17,68,34,0],[69,13,69,14,0],[70,13,70,49,0],[71,13,71,14,0],[72,17,72,44,0],[73,17,73,18,0],[74,21,74,39,0],[77,17,77,18,0],[78,21,78,27,0],[82,13,82,57,0],[83,9,83,10,0],[89,9,89,10,0],[90,13,90,37,0],[91,13,91,14,0],[92,17,92,47,0],[97,13,97,101,0],[98,17,98,79,0],[101,13,101,44,0],[104,13,104,14,0],[105,17,105,34,0],[107,13,107,14,0],[108,13,108,38,0],[109,13,109,14,0],[110,17,110,69,0],[111,17,111,18,0],[112,21,112,39,0],[115,17,115,18,0],[116,21,116,27,0],[120,13,120,100,0],[121,9,121,10,0],[140,9,140,10,0],[141,13,141,27,0],[142,13,142,14,0],[143,17,143,30,0],[144,13,144,14,0],[145,13,145,37,0],[146,9,146,10,0],[149,9,149,10,0],[150,13,150,70,0],[151,9,151,10,0]]);
+    </script>
+  </body>
+</html>

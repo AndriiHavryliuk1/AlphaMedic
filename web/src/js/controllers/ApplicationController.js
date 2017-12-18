@@ -1,6 +1,6 @@
 var app = angular.module('alphaMedicApp');
 
-app.controller('ApplicationController', function($rootScope, $route, $scope, $location, $http, $window, jwtHelper, USER_ROLES) {
+app.controller('ApplicationController', function($rootScope, $route, $scope, $location, $http, $window, jwtHelper, USER_ROLES,URL_FOR_REST) {
     $scope.LogOut = function() {
 
         $rootScope.isAuthorized = false;
@@ -20,52 +20,76 @@ app.controller('ApplicationController', function($rootScope, $route, $scope, $lo
         });
     };
 
-    $rootScope.getPath = function () {
-          return $location.path();
-}
-
-
-/*
-    $scope.GetChecked = function() {
-        var res = "";
+    $rootScope.getPath = function() {
+        var res;
         switch ($location.path()) {
-            case "/signUp":
-                res = "signUp";
-                break;
-            case "/signIn":
-                res = "signIn";
-                break;
-            case "/registrationForAppointment":
-                res = "registrationForAppointment";
-                break;
-            case "/schedule":
-                res = "schedule";
-                break;
-            case "/doctors":
-                res = "doctors";
-                break;
-            case "/departments":
-                res = "departments";
-                break;
-            case "/patients":
-                res = "patients";
-                break;
             case "/administratorCabinet":
             case "/receptionistCabinet":
             case "/patientCabinet":
             case "/doctorCabinet":
-                res = "Cabinet";
+                res = "/Cabinet";
                 break;
-
             default:
-                res = "";
-                break;
+                res = $location.path();
         }
         return res;
-        //  Object.getPrototypeOf($route.current) === $route.routes["/users/:id"];
-        //    return FilterService.getNavCheck();
-    };
-*/
+    }
+
+
+    $scope.$on('$locationChangeSuccess', function(event) {
+        $rootScope.getPath2 = $location.path();
+    });
+
+    $scope.getDoctorId= function(id)
+    {
+      $http.get(URL_FOR_REST.url + "api/doctors/"+id)
+      .success(function(responce) {
+          $rootScope.ScheduleId = responce.ScheduleId;
+      })
+    }
+
+    if ($rootScope.isAuthorized) {
+        var x = jwtHelper.decodeToken(localStorage.getItem('token'));
+        switch (x.role) {
+            case USER_ROLES.admin:
+                {
+                    $rootScope.isAdmin = true;
+                    break;
+                }
+            case USER_ROLES.receptionist:
+                {
+                    $rootScope.isReceptionist = true;
+                    break;
+                }
+            case USER_ROLES.patient:
+                {
+                    $rootScope.isPatient = true;
+                    break;
+                }
+            case USER_ROLES.doctor:
+                {
+                    $rootScope.isDoctor = true;
+                    $scope.getDoctorId(x.id);
+                    break;
+                }
+            case USER_ROLES.hospitalDean:
+                {
+                    $rootScope.isDoctor = true;
+                    $rootScope.isHospitalDean = true;
+                    $scope.getDoctorId(x.id);
+                    break;
+                }
+            case USER_ROLES.headDepartment:
+                {
+                    $rootScope.isDoctor = true;
+                    $rootScope.isHeadDepartment = true;
+                    $scope.getDoctorId(x.id);
+                    break;
+                }
+        }
+    }
+
+
     $scope.Cabinet = function() {
         var x = jwtHelper.decodeToken(localStorage.getItem('token'));
         switch (x.role) {

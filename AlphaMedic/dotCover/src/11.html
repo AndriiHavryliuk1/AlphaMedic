@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>H:\AlphaMedic\AlphaMedic\Rest\Tests\ClosureExample.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+
+namespace Rest.Tests
+{
+    public class ClosureExample
+    {
+        public static Func&lt;string,string&gt; Hello()
+        {
+            string previous = &quot;Alex&quot;;
+            Func&lt;string, string&gt; func = (name) =&gt;
+            {
+               
+                var res= &quot;Hello, &quot; + name + &quot; previous user &quot; + previous;
+                previous = name;
+                return res;
+            }; 
+            return func;
+        }
+    }
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[11,9,11,10,1],[12,13,12,38,1],[13,13,14,13,1],[14,13,14,14,1],[14,14,16,17,1],[16,17,16,74,1],[16,74,17,17,1],[17,17,17,33,1],[17,33,18,17,1],[18,17,18,28,1],[18,28,19,13,1],[19,13,19,14,1],[19,14,19,15,1],[13,13,19,15,1],[20,13,20,25,1],[21,9,21,10,1]]);
+    </script>
+  </body>
+</html>

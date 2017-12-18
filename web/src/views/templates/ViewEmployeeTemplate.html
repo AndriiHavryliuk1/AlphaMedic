@@ -28,12 +28,12 @@
                 Edit
             </th>
         </tr>
-        <tr ng-repeat="employee in employees| filter: pagingInfo.search|searchField:Active|filter:isActiveFilter">
+        <tr ng-repeat="employee in employees| filter: pagingInfo.search | searchField:Active | filter:pagingInfo.isActive">
             <td>
                 {{employee.Name}} {{employee.Surname}}
             </td>
             <td>
-                {{employee.DateOfBirth}}
+                {{employee.DateOfBirth|date:'dd-MM-yyyy'}}
             </td>
             <td>
                 {{employee.Phone}}
@@ -42,7 +42,7 @@
                 {{employee.Address}}
             </td>
             <td>
-                <textarea rows="5" class="text-area" disabled>{{employee.Email}}</textarea>
+                <textarea rows="5" class="text-area" style="resize:none;" disabled>{{employee.Email}}</textarea>
             </td>
             <td>
                 {{employee.EmploymentRecordBookNumber}}

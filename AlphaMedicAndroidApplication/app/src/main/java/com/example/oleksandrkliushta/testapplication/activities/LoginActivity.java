@@ -4,10 +4,10 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.DefaultRetryPolicy;
@@ -26,7 +26,6 @@ import org.json.JSONObject;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
-
 
 public class LoginActivity extends AppCompatActivity {
     TextView email;
@@ -56,13 +55,9 @@ public class LoginActivity extends AppCompatActivity {
         hashed = Hashing.sha256()
                 .hashString(pass, StandardCharsets.UTF_8).toString();
 
-        String body = "grant_type=password&username=" + email.getText() + "&password=" + hashed;
-
-
 
         RequestQueue requestManager = Volley.newRequestQueue(this);
 
-        String requestURL = url;
         Response.Listener<String> jsonListener = new Response.Listener<String>() {
             @Override
             public void onResponse(String list) {
@@ -71,7 +66,10 @@ public class LoginActivity extends AppCompatActivity {
                     SharedPreferences.Editor editor = getSharedPreferences(Constants.MY_PREFS_NAME, MODE_PRIVATE).edit();
                     String token = jObject.getString("access_token");
                     editor.putString("token", token);
-                    editor.commit();
+                    editor.apply();
+
+
+
                     startActivity(new Intent(getApplicationContext(), AppointmentsActivity.class));
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -82,27 +80,26 @@ public class LoginActivity extends AppCompatActivity {
         Response.ErrorListener errorListener = new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                try {
-                    Log.w("Volley Error", error.getMessage());
-                }
-                catch (Exception e) {
-
-                }
+                if (error.networkResponse == null || error.networkResponse.statusCode == 400)
+                    Toast.makeText(getApplicationContext(),"Server erorr! Please try again later",Toast.LENGTH_SHORT).show();
+                else Toast.makeText(getApplicationContext(),"Wrong Email or Password!",Toast.LENGTH_SHORT).show();
             }
         };
 
-        StringRequest fileRequest = new StringRequest(Request.Method.POST, requestURL, jsonListener,errorListener){
+        StringRequest fileRequest = new StringRequest(Request.Method.POST, url, jsonListener,errorListener){
             @Override
-            public String getBodyContentType() {
+            public String getBodyContentType()
+            {
                 return "application/json";
             }
 
             @Override
             protected Map<String, String> getParams() throws AuthFailureError {
-                Map<String,String> params = new HashMap<String, String>();
+                Map<String,String> params = new HashMap<>();
                 params.put("grant_type","password");
                 params.put("username", email.getText().toString());
                 params.put("password", hashed);
+                params.put("client", "desktop");
                 return params;
             }
 
@@ -114,7 +111,7 @@ public class LoginActivity extends AppCompatActivity {
             }
         };
         fileRequest.setRetryPolicy(new DefaultRetryPolicy(
-                5000,
+                10000,
                 DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
                 DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
         requestManager.add(fileRequest);

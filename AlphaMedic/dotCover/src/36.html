@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>H:\AlphaMedic\AlphaMedic\Rest\Helpers\EMailHelper.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using Rest.Models;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Net.Mail;
+using System.Net.Mime;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading.Tasks;
+using System.Web;
+using System.Web.Http;
+
+namespace Rest.Helpers
+{
+    public class EMailHelper
+    {
+        private const string Email = &quot;extraair@ukr.net&quot;;
+        private const string fromPassword = &quot;ExtraAir123&quot;;
+
+        public static void SendNotification(EmailInput emailInput)
+        {
+            var fromAddress = new MailAddress(Email, &quot;Extra Air&quot;);
+            var toAddress = new MailAddress(emailInput.Email, emailInput.UserName);
+
+            var smtp = new SmtpClient
+            {
+				Host = &quot;smtp.ukr.net&quot;,
+				Port = 465,
+				EnableSsl = true,
+                DeliveryMethod = SmtpDeliveryMethod.Network,
+                Credentials = new NetworkCredential(fromAddress.Address, fromPassword)
+            };
+
+            using (var message = new MailMessage(fromAddress, toAddress)
+            {
+                Subject = emailInput.Subject,
+                Body = emailInput.Body,
+            })
+            {
+                smtp.Send(message);
+                smtp.Dispose();
+            }
+        }
+
+
+        public static void SendConfirmRegisterNotification(EmailInput emailInput, int idUser)
+        {
+            var fromAddress = new MailAddress(Email, &quot;Extra Air&quot;);
+            var toAddress = new MailAddress(emailInput.Email, emailInput.UserName);
+            string html = &quot;Please confirm your account by clicking this link: &lt;a href=\&quot;&quot; + Constants.MyClient 
+                + &quot;#/confirmRegistration/&quot; + idUser + &quot;\&quot;&gt;link&lt;/a&gt;&lt;br/&gt;&quot;;
+
+            var smtp = new SmtpClient
+            {
+                Host = &quot;smtp.ukr.net&quot;,
+                Port = 465,
+				EnableSsl = true,
+                DeliveryMethod = SmtpDeliveryMethod.Network,
+                Credentials = new NetworkCredential(fromAddress.Address, fromPassword)
+            };
+
+            var message = new MailMessage(fromAddress, toAddress);
+            message.Subject = emailInput.Subject;
+            message.AlternateViews.Add(AlternateView.CreateAlternateViewFromString(html, null, MediaTypeNames.Text.Html));
+
+            smtp.Send(message);
+            smtp.Dispose();
+            message.Dispose();
+        }
+
+       
+    }
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[23,9,23,10,0],[24,13,24,67,0],[25,13,25,84,0],[27,13,34,15,0],[36,20,40,14,0],[41,13,41,14,0],[42,17,42,36,0],[43,17,43,32,0],[44,13,44,14,0],[45,9,45,10,0],[49,9,49,10,0],[50,13,50,67,0],[51,13,51,84,0],[52,13,53,74,0],[55,13,62,15,0],[64,13,64,67,0],[65,13,65,50,0],[66,13,66,123,0],[68,13,68,32,0],[69,13,69,28,0],[70,13,70,31,0],[71,9,71,10,0]]);
+    </script>
+  </body>
+</html>

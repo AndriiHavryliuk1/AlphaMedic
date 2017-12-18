@@ -15,16 +15,18 @@ app.constant('URL_FOR_REST', {
 
 app.constant('DOCTOR_TYPES',
     [{
-        "id": "0",
-        "value": "Doctor"
+        id: "2",
+        value: "Doctor"
     },
     {
-        "id": "1",
-        "value": "HeadDepartment"
+      id: "5",
+        value: "HeadDepartment"
     },
      {
-        "id": "2",
-        "value": "HospitalDean"
+        id: "4",
+        value: "HospitalDean"
     }]
+
+
 
 )

@@ -12,14 +12,18 @@ app.controller('ListOfAllPatientsController', function(URL_FOR_REST, $scope, $ht
         isActive: $location.search().isActive == undefined ? '' : $location.search().isActive
     };
 
+    $rootScope.loadAdminListPatient = function() {
+        $scope.loadList()
+    }
 
     $scope.loadList = function() {
-
+        $scope.allPatients = null;
         $http.get(URL_FOR_REST.url + "api/Patients/allPatients", {
                 params: $rootScope.pagingInfo
             })
             .success(function(responce) {
                 $scope.allPatients = responce.data;
+
                 $rootScope.pagingInfo.totalItems = responce.count;
                 $scope.pages = Math.ceil(responce.count / $rootScope.pagingInfo.itemsPerPage);
                 $scope.paginArray = PaginationArrayService.Array($scope.pages, $rootScope.pagingInfo.page);
@@ -43,11 +47,11 @@ app.controller('ListOfAllPatientsController', function(URL_FOR_REST, $scope, $ht
 
 
     $scope.ChangeUser = function() {
-        ChangeUserInfoService.ChangeUser($scope.patient, $scope.user, URL_FOR_REST, $http, $scope.user.UserId)
+        ChangeUserInfoService.ChangeUser($scope.patient, $scope.bufferUser,  $scope.bufferUser.UserId,$scope)
 
         if ($scope.picture != "undefined") {
-            fileUploadService.uploadFileToUrl($scope.picture, URL_FOR_REST.url + "api/image/" + $scope.user.UserId).then(function(response) {
-                $scope.user.URLImage = response.data;
+            fileUploadService.uploadFileToUrl($scope.picture, URL_FOR_REST.url + "api/image/" + $scope.bufferUser.UserId).then(function(response) {
+                $scope.bufferUser.URLImage = response.data;
             });
         }
     };
@@ -55,6 +59,7 @@ app.controller('ListOfAllPatientsController', function(URL_FOR_REST, $scope, $ht
     $scope.GetData = function(patient, passParam) {
         $scope.hidePasswordFields = passParam;
         $scope.patient = patient;
-        $scope.user = patient;
+        $scope.bufferUser =angular.copy(patient);
+
     };
 });

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>H:\AlphaMedic\AlphaMedic\Rest\Models\Treatment.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
+using System.Web;
+
+namespace Rest.Models
+{
+    [Table(&quot;Treatments&quot;)]
+    public class Treatment : Procedure
+    {
+        public Treatment()
+        {
+            Medications = new List&lt;Medication&gt;();
+        }       
+        public string Result { get; set; }
+
+        public virtual ICollection&lt;Medication&gt; Medications { get; set; }
+    }
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[12,9,12,27,0],[13,9,13,10,0],[14,13,14,50,0],[15,9,15,10,0],[16,32,16,36,0],[16,37,16,41,0],[18,62,18,66,0],[18,67,18,71,0]]);
+    </script>
+  </body>
+</html>

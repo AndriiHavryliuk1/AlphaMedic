@@ -1,9 +1,8 @@
 var app = angular.module('alphaMedicApp');
 app.controller('AdminCabinetController', function(URL_FOR_REST, $scope, $rootScope, FilterService, $location, $http, ChangeUserInfoService, PagginationService, changeStateService, jwtHelper) {
-    $scope.needSearch = true;
-    $scope.selectedView = "doctorsView";
+    $rootScope.needSearch = $rootScope.needSearch != undefined ? $rootScope.needSearch : true;
+    $rootScope.selectedView = $rootScope.selectedView != undefined ? $rootScope.selectedView : 'doctorsView';
     $scope.searchUser = "";
-    $scope.isActiveShow = true;
     $scope.ChangePass = {
         OldPass: null,
         NewPass: null
@@ -19,20 +18,31 @@ app.controller('AdminCabinetController', function(URL_FOR_REST, $scope, $rootSco
     };
 
     $scope.ChangePassword = function() {
-        ChangeUserInfoService.ChangePassword($scope.ChangePass, jwtHelper.decodeToken(localStorage.getItem('token')).id);
+        ChangeUserInfoService.ChangePassword($scope.ChangePass, jwtHelper.decodeToken(localStorage.getItem('token')).id,$scope);
     };
 
     $scope.AdminFilter = function() {
-        if ($scope.selectedView == 'doctorsView') {
-            $rootScope.search($rootScope.loadAdminList);
+
+        switch ($rootScope.selectedView) {
+            case 'doctorsView':
+                $rootScope.search($rootScope.loadAdminList);
+                break;
+            case 'patientsView':
+                $rootScope.search($rootScope.loadAdminListPatient);
+                break;
         }
+
+
+
     }
 
     $scope.selectView = function(data, params) {
         $location.search('search', null);
         $location.search('isActive', null);
         FilterService.setPage(1);
-        $scope.selectedView = data;
-        $scope.isActiveShow = params;
+        $rootScope.selectedView = data;
+      //  FilterService.setAdminCab(data);
+        $rootScope.needSearch = params;
+
     };
 });

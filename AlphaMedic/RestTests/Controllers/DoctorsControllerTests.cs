@@ -219,47 +219,5 @@ namespace Rest.Controllers.Tests
             var resArray = httpResult.Content.data.Cast<DoctorDto>().Select(x => x.UserId).ToArray();
             Assert.IsTrue(resArray.SequenceEqual(expectedArray));
         }
-
-        [TestMethod()]
-        public void GetDoctorTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void GetAppointmentListTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void PutDoctorTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void PutWorkingHoursTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void PostDoctorTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void PatchActiveStateTest()
-        {
-            Assert.Fail();
-        }
-
-        [TestMethod()]
-        public void DeleteDoctorTest1()
-        {
-            Assert.Fail();
-        }
     }
 }

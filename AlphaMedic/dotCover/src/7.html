@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>H:\AlphaMedic\AlphaMedic\Rest\App_Start\Startup.Auth.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using Microsoft.Owin;
+using Microsoft.Owin.Security.OAuth;
+using Owin;
+using Rest.Models;
+using Rest.Models.AlphaMedicContext;
+using Rest.OAuthServerProvider;
+using System;
+using Microsoft.Owin.Security.Jwt;
+using Microsoft.Owin.Security;
+using Microsoft.Owin.Security.DataHandler.Encoder;
+using System.Configuration;
+
+namespace Rest
+{
+    public partial class Startup
+    {
+        private void ConfigureAuth(IAppBuilder app)
+        {
+
+            //var issuer = &quot;http://jwtauthzsrv.azurewebsites.net&quot;;
+            //var audience = &quot;099153c2625149bc8ecb3e85e03f0022&quot;;
+            //var secret = TextEncodings.Base64Url.Decode(&quot;IxrAjDoa2FqElO7IhrSrUJELhUckePEPVpaePlS_Xaw&quot;);
+
+
+            // Configure the db context and user manager to use a single instance per request
+            //   app.CreatePerOwinContext(AlphaMedicContext.Create);
+            // app.CreatePerOwinContext&lt;User&gt;(Users.Create);
+
+            var issuer = &quot;http://localhost:63741&quot;;
+            var secret = TextEncodings.Base64Url.Decode(
+                ConfigurationManager.AppSettings[&quot;as:AudienceSecret&quot;]);
+
+
+            app.UseCors(Microsoft.Owin.Cors.CorsOptions.AllowAll);
+
+            var OAuthOptions = new OAuthAuthorizationServerOptions
+            {
+                TokenEndpointPath = new PathString(&quot;/Token&quot;),
+                Provider = new ApplicationOAuthServerProvider(),
+                AccessTokenExpireTimeSpan = TimeSpan.FromDays(14),
+                // Provider = new CustomOAuthProvider(),
+                AccessTokenFormat = new CustomJwtFormat(issuer),
+                // Only do this for demo!!
+                AllowInsecureHttp = true
+            };
+            app.UseOAuthAuthorizationServer(OAuthOptions);
+            // app.UseOAuthBearerAuthentication(
+            //       new OAuthBearerAuthenticationOptions());
+
+
+
+
+            app.UseJwtBearerAuthentication(
+                new JwtBearerAuthenticationOptions
+                {
+                    AuthenticationMode = AuthenticationMode.Active,
+                    AllowedAudiences = new[] { ConfigurationManager.AppSettings[&quot;as:AudienceId&quot;] },
+                    IssuerSecurityTokenProviders = new IIssuerSecurityTokenProvider[]
+                    {
+                       new SymmetricKeyIssuerSecurityTokenProvider(issuer, secret)
+                    }
+                }
+                );
+        }
+    }
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[18,9,18,10,0],[29,13,29,51,0],[30,13,31,72,0],[34,13,34,67,0],[36,13,45,15,0],[46,13,46,59,0],[53,13,63,19,0],[64,9,64,10,0]]);
+    </script>
+  </body>
+</html>

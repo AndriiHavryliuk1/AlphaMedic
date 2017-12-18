@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>H:\AlphaMedic\AlphaMedic\Rest\Dtos\UserDto.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using Rest.Models;
+using System;
+
+namespace Rest.Dtos
+{
+    public class UserDto
+    {
+        public int UserId { get; set; }
+        public string Name { get; set; }
+        public string Surname { get; set; }
+        public GenderType Gender { get; set; }
+        public DateTime? DateOfBirth { get; set; }
+        public string Phone { get; set; }
+        public string Address { get; set; }
+        public string Password { get; set; }
+        public string URLImage { get; set; }
+        public string Email { get; set; }
+    }
+
+    public class ShortUserDto
+    {
+        public int UserId { get; set; }
+        public string Name { get; set; }
+        public string Surname { get; set; }
+    }
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[8,29,8,33,0],[8,34,8,38,0],[9,30,9,34,0],[9,35,9,39,0],[10,33,10,37,0],[10,38,10,42,0],[11,36,11,40,0],[11,41,11,45,0],[12,40,12,44,0],[12,45,12,49,0],[13,31,13,35,0],[13,36,13,40,0],[14,33,14,37,0],[14,38,14,42,0],[15,34,15,38,0],[15,39,15,43,0],[16,34,16,38,0],[16,39,16,43,0],[17,31,17,35,0],[17,36,17,40,0],[22,29,22,33,1],[22,34,22,38,1],[23,30,23,34,1],[23,35,23,39,1],[24,33,24,37,1],[24,38,24,42,1]]);
+    </script>
+  </body>
+</html>

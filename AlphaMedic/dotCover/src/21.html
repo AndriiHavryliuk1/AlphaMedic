@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>H:\AlphaMedic\AlphaMedic\Rest\Models\Employee.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
+using System.Web;
+
+namespace Rest.Models
+{
+
+    public enum EmployeeType
+    {
+        Administrator, 
+        Receptionist, 
+        Doctor
+    }
+
+
+    [Table(&quot;Employees&quot;)]
+    public abstract class Employee : User
+    {
+        public  DateTime EmploymentDate { get; set; }
+        public  string EmploymentRecordBookNumber { get; set; }
+        public  DateTime? DismissalDate { get; set; }
+        public  EmployeeType EmployeeType { get; set; }
+        
+    }
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[21,43,21,47,0],[21,48,21,52,0],[22,53,22,57,0],[22,58,22,62,0],[23,43,23,47,0],[23,48,23,52,0],[24,45,24,49,0],[24,50,24,54,1]]);
+    </script>
+  </body>
+</html>

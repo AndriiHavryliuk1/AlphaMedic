@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>H:\AlphaMedic\AlphaMedic\Rest\Controllers\ExaminationsController.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
+using System.Linq;
+using System.Net;
+using System.Web.Http;
+using System.Web.Http.Description;
+using Rest.Models;
+using Rest.Models.AlphaMedicContext;
+using Rest.Dtos;
+
+namespace Rest.Controllers
+{
+    [Authorize]
+    [RoutePrefix(&quot;api/examinations&quot;)]
+    public class ExaminationsController : ApiController
+    {
+        private readonly AlphaMedicContext db = new AlphaMedicContext();
+
+        // GET: api/Examinations
+        [Route(&quot;&quot;)]
+        [Authorize]
+        public IHttpActionResult GetExaminations()
+        {
+            return Ok(db.Examinations.Select(
+               x =&gt; new ProcedureDto
+               {
+                   Date = x.Date,
+                   ProcedureId = (int)x.ProcedureId,
+                   Name = x.Name,
+                   Description = x.Description,
+                   Price = (decimal)x.Price,
+               }
+                ));
+        }
+
+        // GET: api/Examinations/5
+        [Route(&quot;{id:int}&quot;)]
+        [ResponseType(typeof(ProcedureDto))]
+        [Authorize(Roles = Roles.Receptionist + &quot;,&quot; + Roles.Patient + &quot;,&quot; + Roles.AllDoctors)]
+        public IHttpActionResult GetExamination(int id)
+        {
+
+            Examination examination = (Examination)db.Procedures.Find(id);
+
+            var rez = new
+            {
+                ProcedureId = (int)examination.ProcedureId,
+                ProcedureName = examination.Name,
+                ProcedureDescription = examination.Description,
+                Price = (decimal)examination.Price
+
+            };
+
+	        return Ok(rez);
+        }
+
+        // PUT: api/Examinations/5
+        [Authorize(Roles = Roles.Receptionist)]
+        [ResponseType(typeof(void))]
+        [Route(&quot;{id:int}&quot;)]
+        public IHttpActionResult PutExamination(int id, Examination examination)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            if (id != examination.ProcedureId)
+            {
+                return BadRequest();
+            }
+
+            db.Entry(examination).State = EntityState.Modified;
+
+            try
+            {
+                db.SaveChanges();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!ExaminationExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return StatusCode(HttpStatusCode.NoContent);
+        }
+
+        [Route(&quot;{id:int}&quot;)]
+        [Authorize(Roles = Roles.Receptionist + &quot;,&quot; + Roles.AllDoctors)]
+        public IHttpActionResult PostDiagnosis(int id, Diagnosis diagnosis)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            db.Diagnosiss.Add(diagnosis);
+            db.SaveChanges();
+            var examination = db.Examinations.Find(id);
+            db.Entry(examination).State = EntityState.Modified;
+            examination.Diagnosis = diagnosis;
+            db.SaveChanges();
+            return Ok(diagnosis);
+        }
+
+
+        // POST: api/Examinations
+        [Route(&quot;&quot;)]
+        [ResponseType(typeof(Examination))]
+        [Authorize(Roles = Roles.Receptionist + &quot;,&quot; + Roles.AllDoctors)]
+        public IHttpActionResult PostExamination(Examination examination)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            //check if procedure already set
+            if (db.Procedures.FirstOrDefault(x =&gt; x.ProcedureId == examination.ProcedureId) != null)
+                return Content(HttpStatusCode.Conflict, &quot;Procedure existed!&quot;);
+
+            db.Examinations.Add(examination);
+            try
+            {
+                db.SaveChanges();
+                
+            }
+            catch (DbUpdateException)
+            {
+                if (ExaminationExists((int)examination.ProcedureId))
+                {
+                    return Conflict();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return Ok(examination);
+        }
+
+        // DELETE: api/Examinations/5
+        [ResponseType(typeof(Examination))]
+        public IHttpActionResult DeleteExamination(int id)
+        {
+            Examination examination = (Examination)db.Procedures.Find(id);
+            if (examination == null)
+            {
+                return NotFound();
+            }
+
+            db.Procedures.Remove(examination);
+            db.SaveChanges();
+
+            return Ok(examination);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                db.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        private bool ExaminationExists(int id)
+        {
+            return db.Procedures.Count(e =&gt; e.ProcedureId == id) &gt; 0;
+        }
+    }
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[17,9,17,73,0],[23,9,23,10,0],[24,13,33,20,0],[34,9,34,10,0],[41,9,41,10,0],[43,13,43,75,0],[45,13,52,15,0],[54,10,54,25,0],[55,9,55,10,0],[62,9,62,10,0],[63,13,63,37,0],[64,13,64,14,0],[65,17,65,47,0],[68,13,68,47,0],[69,13,69,14,0],[70,17,70,37,0],[73,13,73,64,0],[76,13,76,14,0],[77,17,77,34,0],[78,13,78,14,0],[79,13,79,49,0],[80,13,80,14,0],[81,17,81,44,0],[82,17,82,18,0],[83,21,83,39,0],[86,17,86,18,0],[87,21,87,27,0],[91,13,91,57,0],[92,9,92,10,0],[97,9,97,10,0],[98,13,98,37,0],[99,13,99,14,0],[100,17,100,47,0],[102,13,102,42,0],[103,13,103,30,0],[104,13,104,56,0],[105,13,105,64,0],[106,13,106,47,0],[107,13,107,30,0],[108,13,108,34,0],[109,9,109,10,0],[117,9,117,10,0],[118,13,118,37,0],[119,13,119,14,0],[120,17,120,47,0],[124,13,124,101,0],[125,17,125,79,0],[127,13,127,46,0],[129,13,129,14,0],[130,17,130,34,0],[132,13,132,14,0],[133,13,133,38,0],[134,13,134,14,0],[135,17,135,69,0],[136,17,136,18,0],[137,21,137,39,0],[140,17,140,18,0],[141,21,141,27,0],[145,13,145,36,0],[146,9,146,10,0],[151,9,151,10,0],[152,13,152,75,0],[153,13,153,37,0],[154,13,154,14,0],[155,17,155,35,0],[158,13,158,47,0],[159,13,159,30,0],[161,13,161,36,0],[162,9,162,10,0],[165,9,165,10,0],[166,13,166,27,0],[167,13,167,14,0],[168,17,168,30,0],[169,13,169,14,0],[170,13,170,37,0],[171,9,171,10,0],[174,9,174,10,0],[175,13,175,70,0],[176,9,176,10,0]]);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>H:\AlphaMedic\AlphaMedic\Rest\Controllers\AppointmentsController.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System;
+using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
+using System.Linq;
+using System.Net;
+using System.Web.Http;
+using System.Web.Http.Description;
+using Rest.Models;
+using Rest.Models.AlphaMedicContext;
+using Rest.Helpers;
+using Rest.Dtos;
+
+namespace Rest.Controllers
+{
+    [RoutePrefix(&quot;api/appointments&quot;)]
+    public class AppointmentsController : ApiController
+    {
+        private readonly AlphaMedicContext db = new AlphaMedicContext();
+
+
+
+        // GET: api/Appointments
+        [Route(&quot;&quot;)]
+        [Authorize(Roles = Roles.Receptionist + &quot;,&quot; + Roles.AllDoctors)]
+        public IHttpActionResult GetAppointments(DateTime? periodFrom, DateTime? periodTill,
+            AppointmentState? state = null, int page = 1, int itemsPerPage = 15, int? doctor = null, int? department = null)
+        {
+            var list = db.Appointments.Where(x=&gt;x.State!=AppointmentState.Finished).ToArray();
+
+            #region Filterdate
+            if (doctor != null)
+            {
+                list = list.Where(x =&gt; x.DoctorId == doctor).ToArray();
+            }
+
+            if (department != null)
+            {
+                list = list.Where(x =&gt; x.Doctor != null &amp;&amp; x.Doctor.DepartmentId == department).ToArray();
+            }
+
+            if (periodFrom != null &amp;&amp; periodTill != null)
+            {
+                list = list.Where(x =&gt; x.Date &gt;= periodFrom &amp;&amp; x.Date &lt;= periodTill).ToArray();
+            }
+
+            if (periodFrom != null)
+            {
+                list = list.Where(x =&gt; x.Date &gt;= periodFrom).ToArray();
+            }
+
+            if (periodTill != null)
+            {
+                list = list.Where(x =&gt; x.Date &lt;= periodTill).ToArray();
+            }
+
+            if (state != null)
+            {
+                list = list.Where(x =&gt; x.State == state).ToArray();
+            }
+            #endregion
+
+            var f = list.Where(x =&gt; x.Checked == false).Select(x =&gt; new
+            {
+                x.AppointmentId,
+                x.DoctorId,
+                Doctor = new { Name = x.Doctor?.Name, Surname = x.Doctor?.Surname },
+                x.Date,
+                x.Duration,
+                State = x.State.ToString(),
+            }).OrderByDescending(x =&gt; x.AppointmentId).ToArray();
+
+            var a = list.Where(x =&gt; x.Date == null).Select(x =&gt; new
+            {
+                x.AppointmentId,
+                x.DoctorId,
+                Doctor = new { Name = x.Doctor?.Name, Surname = x.Doctor?.Surname },
+                x.Date,
+                x.Duration,
+                State = x.State.ToString()
+            }).ToArray();
+
+
+            var b = list.Where(x =&gt; x.Date != null).Select(x =&gt; new
+            {
+                x.AppointmentId,
+                x.DoctorId,
+                Doctor = new { Name = x.Doctor?.Name, Surname = x.Doctor?.Surname },
+                x.Date,
+                x.Duration,
+                State = x.State.ToString()
+            }).OrderBy(x =&gt; x.Date).ToArray();
+            var c = (f.Concat(a)).Concat(b).Distinct();
+
+            // paging
+            var usersPaged = c.Skip((page - 1) * itemsPerPage).Take(itemsPerPage).ToList();
+            var json = new
+            {
+                count = c.Count(),
+                data = usersPaged
+            };
+
+            return Ok(json);
+        }
+
+
+
+        [Route(&quot;{id:int}&quot;)]
+        [Authorize(Roles = Roles.AllDoctors + &quot;,&quot; + Roles.Patient + &quot;,&quot; + Roles.Receptionist)]
+        [ResponseType(typeof(Appointment))]
+        public IHttpActionResult GetAppointment(int id)
+        {
+
+            var currentUser = db.Users.FirstOrDefault(x =&gt; x.Email == this.User.Identity.Name);
+
+            if (currentUser == null)
+            {
+                return Content(HttpStatusCode.NotFound, Messages.UserNotFound);
+            }
+
+            var appointment = db.Appointments.FirstOrDefault(x =&gt; x.AppointmentId == id);
+
+            if (appointment == null)
+            {
+                return Content(HttpStatusCode.NotFound, Messages.AppointmentNotFound);
+            }
+
+            if (this.User.IsInRole(Roles.Patient) &amp;&amp; appointment.PatientId != currentUser.UserId)
+            {
+                return Content(HttpStatusCode.Forbidden, Messages.AccsesDenied);
+            }
+
+            if (Tools.AnyRole(this.User, Roles.DoctorRoles) &amp;&amp; appointment.Doctor.UserId != currentUser.UserId)
+            {
+                return Content(HttpStatusCode.Forbidden, Messages.AccsesDenied);
+            }
+
+            try
+            {
+
+                var a = new
+                {
+                    DoctorFullName = appointment.Doctor != null ? appointment.Doctor.Name + &quot; &quot; + appointment.Doctor.Surname : null,
+                    DoctorURLImage = appointment.Doctor != null ? Constants.ThisServer + appointment.Doctor.URLImage : null,
+                    DoctorId = appointment.DoctorId,
+                    PatientId = appointment.PatientId,
+                    PatientFullName = appointment.Patient.Name + &quot; &quot; + appointment.Patient.Surname,
+                    PatientURLImage = Constants.ThisServer + appointment.Patient.URLImage,
+                    Date = appointment.Date,
+                    Description = appointment.Description,
+                    Duration = appointment.Duration,
+                    State = appointment.State.ToString(),
+                    ProcedureType = appointment.Procedure == null ? null : appointment.Procedure.GetType().BaseType.Name,
+                    Checked = appointment.Checked
+                };
+                return Ok(a);
+            }
+            catch (Exception ex)
+            {
+                return InternalServerError(ex);
+            }
+
+
+
+
+        }
+
+        [HttpPut]
+        [Authorize(Roles = Roles.Receptionist + &quot;,&quot; + Roles.AllDoctors)]
+        [Route(&quot;{id:int}&quot;)]
+        [ResponseType(typeof(void))]
+        public IHttpActionResult UpdateAndConfirmAppointment(int id, Appointment appointment)
+        {
+            var currentUser = db.Users.FirstOrDefault(x =&gt; x.Email == this.User.Identity.Name);
+            if (appointment.DoctorId != currentUser.UserId &amp;&amp; Tools.AnyRole(this.User, Roles.DoctorRoles))
+            {
+                return Content(HttpStatusCode.Forbidden, Messages.AccsesDenied);
+            }
+
+            appointment.AppointmentId = id;
+
+            db.Entry(appointment).State = EntityState.Modified;
+
+            try
+            {
+                db.SaveChanges();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+	            if (!AppointmentExists(id))
+                {
+                    return NotFound();
+                }
+	            throw;
+            }
+
+            return StatusCode(HttpStatusCode.NoContent);
+        }
+
+
+        [HttpPost]
+        [Route(&quot;checkdateforapp&quot;)]
+        [ResponseType(typeof(void))]
+        public IHttpActionResult CheckDateForAppointment(Appointment appointment)
+        {
+            var appoints = db.Appointments.Where(x =&gt; x.DoctorId == appointment.DoctorId &amp;&amp; x.Date &gt;= DateTime.Now).ToArray();
+
+	        if (appointment.Date == null || appointment.Duration == null) return Ok();
+	        foreach (var list in appoints)
+	        {
+		        if (list.Date == null || list.Duration == null) continue;
+		        var tmp = list.Date + list.Duration;
+		        var enterApp = appointment.Date + appointment.Duration;
+		        if ((appointment.Date == list.Date) ||
+		            (enterApp == tmp) ||
+		            ((appointment.Date) &gt;= list.Date &amp;&amp; (appointment.Date) &lt;= tmp) ||
+		            ((appointment.Date) &gt;= list.Date &amp;&amp; enterApp &lt;= tmp) ||
+		            (appointment.Date &lt;= list.Date &amp;&amp; enterApp &gt;= list.Date) ||
+		            (appointment.Date &lt;= list.Date &amp;&amp; enterApp &gt;= tmp))
+		        {
+			        return NotFound();
+		        }
+	        }
+	        return Ok();
+
+        }
+
+
+        [HttpPost]
+        [Route(&quot;{id:int}/sendmail&quot;)]
+        [ResponseType(typeof(void))]
+        public IHttpActionResult SendEmail(int id, EmailPostDto emailPostDto)
+        {
+            if (emailPostDto.EmailState == EmailPostState.delete &amp;&amp; (emailPostDto.appointment == null || emailPostDto.appointment.Date &lt; DateTime.Now))
+            {
+                return BadRequest();
+            }
+
+            EmailInput emailInput = new EmailInput();
+            var pat = db.Patients.Find(emailPostDto.appointment.PatientId);
+            emailInput.UserName = pat.FullName;
+            emailInput.Email = pat.Email;
+
+            switch (emailPostDto.EmailState)
+            {
+                case EmailPostState.confirm:
+                    {
+                        emailInput.Subject = &quot;Confirm appointment!&quot;;
+                        emailInput.Body =
+	                        $&quot;Hello! \nYou reserved to apointment on {emailPostDto.appointment.Date}\nYour doctor:{db.Doctors.Find(emailPostDto.appointment.DoctorId).FullName}\nPlease delete appointment and register one more if It`s date doesn`t suitable for you\nBest regard,\nAlphaMedic&quot;;
+                        break;
+                    }
+
+                case EmailPostState.delete:
+                    {
+                        emailInput.Subject = &quot;Deleted appointment!&quot;;
+                        emailInput.Body = &quot;Hello! \nI am sorry but you deleted from your appointment:\nAppointment date:&quot; + emailPostDto.appointment.Date +
+                 &quot;\nAppointment symptoms:&quot; + emailPostDto.appointment.Description +
+                 &quot;\nbecause It has already recerved. Please register for anouther&quot; +
+                 &quot; appointment and choose anouther date.\nBest regard,\nAlphaMedic&quot;;
+                        break;
+                    }
+
+                case EmailPostState.change:
+                    {
+                        emailInput.Subject = &quot;Change appointment!&quot;;
+                        emailInput.Body = &quot;Hello! \nWe changed your appointment date because doctor busies on this date &quot; + emailPostDto.appointment.Date + &quot;\nYour doctor:&quot; +
+                        db.Doctors.Find(emailPostDto.appointment.DoctorId)?.FullName + &quot;\nPlease delete appointment and register one more if It`s date doesn`t suitable for you\nBest regard,\nAlphaMedic&quot;;
+                        break;
+                    }
+
+            }
+            try
+            {
+                EMailHelper.SendNotification(emailInput);
+            }
+            catch (Exception)
+            {
+                return BadRequest();
+            }
+
+            return Ok();
+
+        }
+
+        //GET: api/schedule/1
+        [Route(&quot;~/api/schedule/{id:int}&quot;)]
+        public IQueryable GetDoctorAppointmentsAsEvents(int id)
+        {
+
+            var a = db.Appointments.Where(x =&gt; x.State == AppointmentState.Accepted &amp;&amp; x.Doctor.ScheduleId == id &amp;&amp; x.Date != null &amp;&amp; (bool)x.Patient.Active).ToArray();
+            var b = a.Select(e =&gt; new
+            {
+                url = &quot;#/appointmentInfo/&quot; + e.AppointmentId.ToString(),
+                start = e.Date,
+                finish = e.Date + e.Duration,
+                title = e.Patient.Name + &quot; &quot; + e.Patient.Surname
+            }
+           );
+
+
+            return b.AsQueryable();
+        }
+
+
+        [Route(&quot;&quot;)]
+        [ResponseType(typeof(Appointment))]
+        [Authorize(Roles = Roles.Receptionist + &quot;,&quot; + Roles.Patient + &quot;,&quot; + Roles.AllDoctors)]
+        public IHttpActionResult PostAppointment(Appointment appointment)
+        {
+            if (db.Employees.Any(x =&gt; x.UserId == appointment.PatientId))
+            {
+                return BadRequest(&quot;Employee can&#39;t register for appointment&quot;);
+            }
+
+            if (appointment.Date &lt; DateTime.UtcNow)
+            {
+                return BadRequest(&quot;Wrong date&quot;);
+            }
+
+            appointment.Doctor = db.Doctors.Include(c =&gt; c.Schedule).
+                   FirstOrDefault(d =&gt; d.UserId == appointment.DoctorId);
+            appointment.Patient = db.Patients.Include(c =&gt; c.MedicalHistory).
+                FirstOrDefault(p =&gt; p.UserId == appointment.PatientId);
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            db.Appointments.Add(appointment);
+            db.SaveChanges();
+
+            return Ok(new
+            {
+                Id = appointment.AppointmentId,
+                Date = appointment.Date
+            });
+
+        }
+
+        // DELETE: api/Appointments/5
+        [Route(&quot;{id:int}&quot;)]
+        [ResponseType(typeof(Appointment))]
+        [Authorize(Roles = Roles.Receptionist + &quot;,&quot; + Roles.Patient)]
+        public IHttpActionResult DeleteAppointment(int id)
+        {
+            var appointment = db.Appointments.Find(id);
+            if (appointment == null)
+            {
+                return NotFound();
+            }
+            var proc = db.Procedures.Find(id);
+            try
+            {
+                if (proc != null)
+                {
+                    db.Procedures.Remove(proc);
+                    db.SaveChanges();
+                }
+                db.Appointments.Remove(appointment);
+                db.SaveChanges();
+            }
+            catch (Exception)
+            {
+                return NotFound();
+            }
+            return Ok(appointment);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                db.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        private bool AppointmentExists(int id)
+        {
+            return db.Appointments.Count(e =&gt; e.AppointmentId == id) &gt; 0;
+        }
+    }
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[18,9,18,73,0],[27,9,27,10,0],[28,13,28,95,0],[31,13,31,32,0],[32,13,32,14,0],[33,17,33,40,0],[33,40,33,60,0],[33,60,33,72,0],[33,17,33,72,0],[34,13,34,14,0],[36,13,36,36,0],[37,13,37,14,0],[38,17,38,40,0],[38,40,38,95,0],[38,95,38,107,0],[38,17,38,107,0],[39,13,39,14,0],[41,13,41,58,0],[42,13,42,14,0],[43,17,43,40,0],[43,40,43,84,0],[43,84,43,96,0],[43,17,43,96,0],[44,13,44,14,0],[46,13,46,36,0],[47,13,47,14,0],[48,17,48,40,0],[48,40,48,60,0],[48,60,48,72,0],[48,17,48,72,0],[49,13,49,14,0],[51,13,51,36,0],[52,13,52,14,0],[53,17,53,40,0],[53,40,53,60,0],[53,60,53,72,0],[53,17,53,72,0],[54,13,54,14,0],[56,13,56,31,0],[57,13,57,14,0],[58,17,58,40,0],[58,40,58,56,0],[58,56,58,68,0],[58,17,58,68,0],[59,13,59,14,0],[62,13,62,37,0],[62,37,62,55,0],[62,55,62,69,0],[62,69,70,14,0],[70,14,70,39,0],[70,39,70,54,0],[70,54,70,66,0],[62,13,70,66,0],[72,13,72,37,0],[72,37,72,51,0],[72,51,72,65,0],[72,65,80,14,0],[80,14,80,26,0],[72,13,80,26,0],[83,13,83,37,0],[83,37,83,51,0],[83,51,83,65,0],[83,65,91,14,0],[91,14,91,29,0],[91,29,91,35,0],[91,35,91,47,0],[83,13,91,47,0],[92,13,92,56,0],[95,13,95,92,0],[96,13,100,15,0],[102,13,102,29,0],[103,9,103,10,0],[111,9,111,10,0],[113,13,113,96,0],[115,13,115,37,0],[116,13,116,14,0],[117,17,117,80,0],[120,13,120,90,0],[122,13,122,37,0],[123,13,123,14,0],[124,17,124,87,0],[127,13,127,98,0],[128,13,128,14,0],[129,17,129,81,0],[132,13,132,112,0],[133,13,133,14,0],[134,17,134,81,0],[138,13,138,14,0],[140,17,154,19,0],[155,17,155,30,0],[157,13,157,33,0],[158,13,158,14,0],[159,17,159,48,0],[165,9,165,10,0],[172,9,172,10,0],[173,13,173,96,0],[174,13,174,107,0],[175,13,175,14,0],[176,17,176,81,0],[179,13,179,44,0],[181,13,181,64,0],[184,13,184,14,0],[185,17,185,34,0],[186,13,186,14,0],[187,13,187,49,0],[188,13,188,14,0],[189,14,189,41,0],[190,17,190,18,0],[191,21,191,39,0],[193,14,193,20,0],[196,13,196,57,0],[197,9,197,10,0],[204,9,204,10,0],[205,13,205,127,0],[207,10,207,71,0],[207,72,207,84,0],[208,10,208,17,0],[208,19,208,27,0],[208,28,208,30,0],[208,31,208,39,0],[209,10,209,11,0],[210,11,210,58,0],[210,59,210,68,0],[211,11,211,47,0],[212,11,212,66,0],[213,11,218,66,0],[219,11,219,12,0],[220,12,220,30,0],[222,10,222,11,0],[223,10,223,22,0],[225,9,225,10,0],[232,9,232,10,0],[233,13,233,152,0],[234,13,234,14,0],[235,17,235,37,0],[238,13,238,54,0],[239,13,239,76,0],[240,13,240,48,0],[241,13,241,42,0],[243,13,243,45,0],[246,21,246,22,0],[247,25,247,69,0],[248,25,249,288,0],[250,25,250,31,0],[254,21,254,22,0],[255,25,255,69,0],[256,25,259,85,0],[260,25,260,31,0],[264,21,264,22,0],[265,25,265,68,0],[266,25,267,204,0],[268,25,268,31,0],[273,13,273,14,0],[274,17,274,58,0],[275,13,275,14,0],[276,13,276,30,0],[277,13,277,14,0],[278,17,278,37,0],[281,13,281,25,0],[283,9,283,10,0],[288,9,288,10,0],[290,13,290,169,0],[291,13,291,35,0],[291,35,297,14,0],[297,14,298,14,0],[291,13,298,14,0],[301,13,301,36,0],[302,9,302,10,0],[309,9,309,10,0],[310,13,310,74,0],[311,13,311,14,0],[312,17,312,78,0],[315,13,315,52,0],[316,13,316,14,0],[317,17,317,49,0],[320,13,321,74,0],[322,13,323,72,0],[325,13,325,37,0],[326,13,326,14,0],[327,17,327,47,0],[330,13,330,46,0],[331,13,331,30,0],[333,13,337,16,0],[339,9,339,10,0],[346,9,346,10,0],[347,13,347,56,0],[348,13,348,37,0],[349,13,349,14,0],[350,17,350,35,0],[352,13,352,47,0],[354,13,354,14,0],[355,17,355,34,0],[356,17,356,18,0],[357,21,357,48,0],[358,21,358,38,0],[359,17,359,18,0],[360,17,360,53,0],[361,17,361,34,0],[362,13,362,14,0],[363,13,363,30,0],[364,13,364,14,0],[365,17,365,35,0],[367,13,367,36,0],[368,9,368,10,0],[371,9,371,10,0],[372,13,372,27,0],[373,13,373,14,0],[374,17,374,30,0],[375,13,375,14,0],[376,13,376,37,0],[377,9,377,10,0],[380,9,380,10,0],[381,13,381,74,0],[382,9,382,10,0]]);
+    </script>
+  </body>
+</html>

@@ -22,6 +22,7 @@ app.controller('ListOfPatientsController', function(URL_FOR_REST, $scope, $http,
             $rootScope.pagingInfo.doctor = '';
             $scope.loadList();
         } else {
+          $rootScope.pagingInfo.doctor = '';
             $scope.showDoctorSelect = true;
             $http.get(URL_FOR_REST.url + "api/Departments/" + $rootScope.pagingInfo.department + "/doctors")
                 .success(function(responce) {

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>H:\AlphaMedic\AlphaMedic\Rest\Controllers\FileUploadController.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Http;
+using System.Threading.Tasks;
+using Rest.Models;
+using System.Net.Http;
+using System.IO;
+using System.Net;
+using Rest.Models.AlphaMedicContext;
+using System.Data.Entity;
+
+namespace Rest.Controllers
+{
+
+    public class FilenameMultipartFormDataStreamProvider : MultipartFormDataStreamProvider
+    {
+        public FilenameMultipartFormDataStreamProvider(string path) : base(path)
+        {
+        }
+
+        public override string GetLocalFileName(System.Net.Http.Headers.HttpContentHeaders headers)
+        {
+           
+            return  string.Format(@&quot;{0}.jpg&quot;, DateTime.Now.Ticks);
+        }
+    }
+
+    [Authorize]
+    [RoutePrefix(&quot;api/image&quot;)]
+    public class FileUploadController : ApiController
+    {
+        private static readonly string ServerUploadFolder = System.Web.Hosting.HostingEnvironment.MapPath(&quot;~/img&quot;);
+
+        private AlphaMedicContext db = new AlphaMedicContext();
+        //For user
+        [Route(&quot;{id:int}&quot;)]
+        [HttpPost]
+        public async Task&lt;IHttpActionResult&gt; UploadFile(int id)
+        {
+
+            
+            HttpRequestMessage request = this.Request;
+            if (!request.Content.IsMimeMultipartContent())
+            {
+                throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
+            }
+            try
+            {
+                var currentUser = db.Users.FirstOrDefault(x =&gt; x.Email == this.User.Identity.Name);
+
+                if (currentUser == null)
+                {
+                    return NotFound();
+                }
+
+                if(!this.User.IsInRole(Roles.Administrator)&amp;&amp; id!=currentUser.UserId)
+                {
+                    return Content(HttpStatusCode.Forbidden, Messages.AccsesDenied);
+                }
+
+                var streamProvider = new FilenameMultipartFormDataStreamProvider(ServerUploadFolder);
+                await Request.Content.ReadAsMultipartAsync(streamProvider);
+
+
+                var fileName = Path.GetFileName(streamProvider.FileData.Select(entry =&gt; entry.LocalFileName).First());
+
+                var user = db.Users.Find(id);
+
+                if( user == null )
+                {
+                    return NotFound();
+                }
+
+                 user.URLImage = &quot;img/&quot; + fileName;
+
+                db.Entry(user).State = System.Data.Entity.EntityState.Modified;
+
+                db.SaveChanges();
+                return Ok(Constants.ThisServer + &quot;img/&quot; + fileName);
+            }
+            catch (Exception ex)
+            {
+                return InternalServerError(ex);
+            }
+
+
+        }
+        [Route(&quot;department/{id:int}&quot;)]
+        [HttpPost]
+        [Authorize (Roles =Roles.Administrator)]
+        public async Task&lt;IHttpActionResult&gt; UploadDepFile(int id)
+        {
+
+
+            HttpRequestMessage request = this.Request;
+            if (!request.Content.IsMimeMultipartContent())
+            {
+                throw new HttpResponseException(HttpStatusCode.UnsupportedMediaType);
+            }
+            try
+            {
+                var streamProvider = new FilenameMultipartFormDataStreamProvider(ServerUploadFolder);
+                await Request.Content.ReadAsMultipartAsync(streamProvider);
+
+
+                var fileName = Path.GetFileName(streamProvider.FileData.Select(entry =&gt; entry.LocalFileName).First());
+
+                var dep = db.Departments.Find(id);
+
+                if( dep == null)
+                {
+                    return NotFound();
+                }
+
+                dep.URLImage = &quot;img/&quot; + fileName;
+
+                db.Entry(dep).State = System.Data.Entity.EntityState.Modified;
+
+                db.SaveChanges();
+                return Ok(Constants.ThisServer + &quot;img/&quot; + fileName);
+            }
+            catch (Exception ex)
+            {
+                return InternalServerError(ex);
+            }
+
+
+        }
+
+
+    }
+}
+
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[19,71,19,81,0],[20,9,20,10,0],[21,9,21,10,0],[24,9,24,10,0],[26,13,26,67,0],[27,9,27,10,0],[34,9,34,116,0],[36,9,36,64,0],[41,9,41,10,0],[44,13,44,55,0],[45,13,45,59,0],[46,13,46,14,0],[47,17,47,86,0],[50,13,50,14,0],[51,17,51,100,0],[53,17,53,41,0],[54,17,54,18,0],[55,21,55,39,0],[58,17,58,86,0],[59,17,59,18,0],[60,21,60,85,0],[63,17,63,102,0],[64,17,64,76,0],[67,17,67,119,0],[67,89,67,108,0],[69,17,69,46,0],[71,17,71,35,0],[72,17,72,18,0],[73,21,73,39,0],[76,18,76,52,0],[78,17,78,80,0],[80,17,80,34,0],[81,17,81,69,0],[83,13,83,33,0],[84,13,84,14,0],[85,17,85,48,0],[89,9,89,10,0],[94,9,94,10,0],[97,13,97,55,0],[98,13,98,59,0],[99,13,99,14,0],[100,17,100,86,0],[103,13,103,14,0],[104,17,104,102,0],[105,17,105,76,0],[108,17,108,119,0],[108,89,108,108,0],[110,17,110,51,0],[112,17,112,33,0],[113,17,113,18,0],[114,21,114,39,0],[117,17,117,50,0],[119,17,119,79,0],[121,17,121,34,0],[122,17,122,69,0],[124,13,124,33,0],[125,13,125,14,0],[126,17,126,48,0],[130,9,130,10,0]]);
+    </script>
+  </body>
+</html>

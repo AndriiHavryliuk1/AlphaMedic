@@ -75,8 +75,8 @@ public class AppointmentAdapter extends
 
         public void bindViewData(List<Appointment> dataset, int position){
             stateTextView.setText(dataset.get(position).State.toString());
-            durationTextView.setText(dataset.get(position).Duration.toString());
-            dateTextView.setText(dataset.get(position).DateTime.toString());
+            durationTextView.setText(dataset.get(position).Duration);
+            dateTextView.setText(dataset.get(position).Date);
             String doctorFullName = dataset.get(position).Name + " " +
                     dataset.get(position).Surname;
             doctorTextView.setText(doctorFullName);

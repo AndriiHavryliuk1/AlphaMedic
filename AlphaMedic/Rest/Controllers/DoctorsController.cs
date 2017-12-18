@@ -12,6 +12,7 @@ using System.Linq.Dynamic;
 using Microsoft.AspNetCore.JsonPatch;
 using System.Data.Entity.Validation;
 using Rest.Dtos;
+using System.Collections.Generic;
 
 namespace Rest.Controllers
 {
@@ -60,7 +61,7 @@ namespace Rest.Controllers
             {
                 search = search.ToLower();
                 users = users.Where(x =>
-                    (x.Name+x.Surname).ToLower().Contains(search.Replace(" ", "")) ||
+                    (x.Name + x.Surname).ToLower().Contains(search.Replace(" ", "")) ||
                     (x.Surname + x.Name).ToLower().Contains(search.Replace(" ", "")));
             }
 
@@ -80,12 +81,56 @@ namespace Rest.Controllers
             return Ok(json);
         }
 
+        [HttpGet]
+        [Route("{id:int}/durations")]
+        public IHttpActionResult GetDurations(int id)
+        {
+            var durations = db.Appointments.Where(x =>
+            x.State == AppointmentState.Accepted &&
+            x.DoctorId == id &&
+            x.Date >= DateTime.Now
+            ).OrderBy("Date");
+
+            var durs = new List<object>();
+                foreach(var d in durations)
+            {
+                var finishTime = d.Date + d.Duration;
+                durs.Add(
+                    new
+                    {
+                        Start = d.Date,
+                        Finish = finishTime
+                    }
+                    );
+            }
+            return Ok(durs);
+        }
+
+
+        //Get : api/Doctors?schedule/5
+        [Route("schedule/{id:int}")]
+        public IHttpActionResult GetDoctorFromSchedule(int id)
+        {
+
+            var doc = db.Doctors.FirstOrDefault(x => x.ScheduleId == id);
+            return Ok(new
+            {
+                doc.UserId,
+                FullName = doc.Name + " " + doc.Surname,
+                URLImage = Constants.ThisServer + doc.URLImage,
+                doc.Schedule.StartWorkingTime,
+                doc.Schedule.FinishWorkingTime,
+                doc.ScheduleId
+            });
+
+        }
+
 
         // GET: api/Doctors/5
         [Route("{id:int}")]
         public IHttpActionResult GetDoctor(int id, [FromUri] bool all = true)
         {
-            Doctor doctor = db.Doctors.FirstOrDefault(x => x.UserId == id);
+            Doctor doctor = db.Doctors.FirstOrDefault(x => x.UserId == id && x.Active != false);
             if (doctor == null)
             {
                 return NotFound();
@@ -112,7 +157,7 @@ namespace Rest.Controllers
                 doctor.Phone,
                 doctor.Degree,
                 doctor.Education,
-                DoctorType= doctor.DoctorType.ToString(),
+                DoctorType = doctor.DoctorType.ToString(),
                 Feedbacks = all == true ? feedbacks : feedbacks.Skip(Math.Max(0, doctor.Feedbacks.Count - 3)),
                 FeedbacksCount = doctor.Feedbacks.Count,
                 Gender = doctor.Gender.ToString(),
@@ -126,7 +171,7 @@ namespace Rest.Controllers
 
         // GET: api/Doctors/5/Appointments
         [Route("{id:int}/Appointments")]
-        [Authorize(Roles =Roles.AllDoctors+","+Roles.Receptionist)]
+        [Authorize(Roles = Roles.AllDoctors + "," + Roles.Receptionist)]
         public IHttpActionResult GetAppointmentList(int id)
         {
             Doctor doctor = db.Doctors.FirstOrDefault(x => x.UserId == id);
@@ -148,8 +193,9 @@ namespace Rest.Controllers
                 doctor.DoctorType,
                 URLImage = Constants.ThisServer + doctor.URLImage,
 
-                Appointments = db.Appointments.Where(x => x.DoctorId == id && x.Date > DateTime.Now).Select(a => new
+                Appointments = db.Appointments.Where(x => x.DoctorId == id && x.State == AppointmentState.Accepted).Select(a => new
                 {
+
                     a.AppointmentId,
                     PatientFullName = a.Patient.Name + " " + a.Patient.Surname,
                     a.PatientId,
@@ -157,9 +203,9 @@ namespace Rest.Controllers
                     a.Duration,
                     State = a.State == 0 ? "Unconfirmed" : "Accepted"
                 })
-
             };
-            res.Appointments.OrderByDescending(x => x.Date).Skip(Math.Max(0, res.Appointments.Count() - 5));
+
+            res.Appointments.OrderByDescending(x => x.Date);
             return Ok(res);
 
         }
@@ -203,6 +249,7 @@ namespace Rest.Controllers
         [HttpPut]
         [Route("~/api/scheduleUpdate/{id:int}")]
         [ResponseType(typeof(void))]
+        [Authorize(Roles = Roles.Receptionist)]
         public IHttpActionResult PutWorkingHours(int id, Schedule schedule)
         {
             if (!ModelState.IsValid)
@@ -284,7 +331,7 @@ namespace Rest.Controllers
         public IHttpActionResult PatchActiveState(int id, JsonPatchDocument<Doctor> patchData)
         {
             var doctor = db.Doctors.Find(id);
-         
+
             patchData.ApplyTo(doctor);
 
             if (doctor.DoctorType == DoctorType.HeadDepartment)
@@ -316,25 +363,29 @@ namespace Rest.Controllers
 
                 return BadRequest(s);
             }
+            catch (Exception ex)
+            {
+                return InternalServerError();
+            }
             return Ok();
 
         }
 
-     /*  // DELETE: api/Doctors/5
-        [ResponseType(typeof(Doctor))]
-        public IHttpActionResult DeleteDoctor(int id)
-        {
-            Doctor doctor = db.Doctors.FirstOrDefault(x => x.UserId == id);
-            if (doctor == null)
-            {
-                return NotFound();
-            }
+        /*  // DELETE: api/Doctors/5
+           [ResponseType(typeof(Doctor))]
+           public IHttpActionResult DeleteDoctor(int id)
+           {
+               Doctor doctor = db.Doctors.FirstOrDefault(x => x.UserId == id);
+               if (doctor == null)
+               {
+                   return NotFound();
+               }
 
-            db.Users.Remove(doctor);
-            db.SaveChanges();
+               db.Users.Remove(doctor);
+               db.SaveChanges();
 
-            return Ok(doctor);
-        }*/
+               return Ok(doctor);
+           }*/
 
         protected override void Dispose(bool disposing)
         {

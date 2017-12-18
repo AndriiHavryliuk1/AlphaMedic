@@ -1,16 +1,16 @@
 var app = angular.module('alphaMedicApp');
 
-app.controller('RegisterForAppointmentController', function(URL_FOR_REST, jwtHelper, FilterService,$scope, $http, $routeParams, $window) {
+app.controller('RegisterForAppointmentController', function(URL_FOR_REST, jwtHelper, $timeout, $filter, FilterService, $scope, $http, $window) {
 
-$scope.appointment = {
-  DoctorId: FilterService.getDoctor(),
-  PatientId: '',
-  Description: '',
-  Date: '',
-  Duration: ''
-}
-  $scope.chooseDep = FilterService.getDepartment();
-  $scope.appointment.DoctorId = FilterService.getDoctor();
+    $scope.appointment = {
+        DoctorId: FilterService.getDoctor(),
+        PatientId: '',
+        Description: '',
+        Duration: '',
+        Checked: false
+    }
+    $scope.chooseDep = FilterService.getDepartment();
+    $scope.appointment.DoctorId = FilterService.getDoctor();
     $http.get(URL_FOR_REST.url + "api/departments")
         .success(function(responce) {
             $scope.departments = responce;
@@ -26,15 +26,20 @@ $scope.appointment = {
             });
     };
 
-    $scope.$watch('chooseDep',function(){
-      if(FilterService.getDepartment() != '')
-        $scope.changeDepartment();
+    $scope.$watch('chooseDep', function() {
+        if (FilterService.getDepartment() != '')
+            $scope.changeDepartment();
     });
+
+
 
 
     $scope.submit = function() {
         $scope.succed = false;
         $scope.failed = false;
+        $scope.dateFail = false;
+
+        $scope.appointment.Date = $filter('date')($scope.appointment.Date, "yyyy-MM-dd HH:mm");
         if (localStorage.getItem('token') != undefined) {
             $scope.appointment.PatientId = jwtHelper.decodeToken(localStorage.getItem('token')).id;
             $http
@@ -45,16 +50,19 @@ $scope.appointment = {
                 })
                 .success(function(data, status, headers, config) {
                     $scope.succed = true;
-//FilterService.setDepartment('');
+                    $timeout(function () {
+                      $window.location.href = "/#/patientCabinet";
+                    }, 2000);
                 })
                 .error(function(data, status, headers, config) {
-                //    FilterService.setDepartment('');
-                    $scope.failed = true;
+                    if (data.Message == "Wrong date")
+                        $scope.dateFail = true;
+                    else $scope.failed = true;
                 });
         } else {
             alert("You can't register for appointment! Please, sign in or sign up");
             FilterService.setDepartment('');
-            $window.location.href = "#/signIn";
+            $window.location.href = "/#/signIn";
         }
     };
 

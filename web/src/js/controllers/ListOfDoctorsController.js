@@ -9,7 +9,8 @@ app.controller('ListOfDoctorsController', function(URL_FOR_REST, $scope, $http, 
         reverse: false,
         search: $location.search().search == undefined ? '' : $location.search().search,
         totalItems: 0,
-        department: FilterService.getDepartment() == '' ? $location.search().department : FilterService.getDepartment()
+        department: FilterService.getDepartment() == '' ? $location.search().department : FilterService.getDepartment(),
+        isActive: true
     };
 
     $scope.goToAppointment = function(depId, docId) {
@@ -32,7 +33,8 @@ $scope.$on('$locationChangeStart', function(e) {
         reverse: false,
         search: $location.search().search == undefined ? '' : $location.search().search,
         totalItems: 0,
-        department: FilterService.getDepartment() == '' ? $location.search().department : FilterService.getDepartment()
+        department: FilterService.getDepartment() == '' ? $location.search().department : FilterService.getDepartment(),
+        isActive: true
     };
     PagginationService.ChangeURL($scope.loadList, $scope.doctors, $rootScope.preArray, '/doctors', $rootScope.pagingInfo);
 });

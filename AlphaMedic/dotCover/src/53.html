@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>H:\AlphaMedic\AlphaMedic\Rest\Controllers\DoctorsController.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System.Data;
+using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
+using System.Linq;
+using System.Net;
+using System.Web.Http;
+using System.Web.Http.Description;
+using Rest.Models;
+using Rest.Models.AlphaMedicContext;
+using System;
+using System.Linq.Dynamic;
+using Microsoft.AspNetCore.JsonPatch;
+using System.Data.Entity.Validation;
+using Rest.Dtos;
+using System.Collections.Generic;
+
+namespace Rest.Controllers
+{
+    [RoutePrefix(&quot;api/Doctors&quot;)]
+    public class DoctorsController : ApiController
+    {
+        private AlphaMedicContext db = new AlphaMedicContext();
+
+        public DoctorsController() { }
+
+        public DoctorsController(AlphaMedicContext context)
+        {
+            this.db = context;
+        }
+
+        [Route(&quot;&quot;)]
+        public IHttpActionResult GetUsers(int page = 1, int itemsPerPage = 15, string sortBy = &quot;DoctorId&quot;, bool reverse = false, string search = null, int? department = null, bool? isActive = null)
+        {
+            var users = db.Doctors.Select(x =&gt; new DoctorDto
+            {
+                UserId = x.UserId, //Achtung, do not touch.
+                DoctorId = x.UserId,
+                URLImage = Constants.ThisServer + x.URLImage,
+                Name = x.Name,
+                Surname = x.Surname,
+                Degree = x.Degree,
+                DepartmentId = x.DepartmentId,
+                Education = x.Education,
+                DoctorType = x.DoctorType.ToString(),
+                DoctorTypeInt = x.DoctorType,
+                DepartmentName = (x.Department != null ? x.Department.Name : null),
+                Active = x.Active
+            });
+
+            if (department != null)
+            {
+                users = users.Where(x =&gt; x.DepartmentId == department);
+            }
+
+            if (isActive != null)
+            {
+                users = users.Where(x =&gt; x.Active == isActive);
+            }
+            // searching
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                search = search.ToLower();
+                users = users.Where(x =&gt;
+                    (x.Name + x.Surname).ToLower().Contains(search.Replace(&quot; &quot;, &quot;&quot;)) ||
+                    (x.Surname + x.Name).ToLower().Contains(search.Replace(&quot; &quot;, &quot;&quot;)));
+            }
+
+            // sorting (done with the System.Linq.Dynamic library available on NuGet)
+            users = users.OrderBy(sortBy + (reverse ? &quot; descending&quot; : &quot;&quot;));
+
+            // paging
+            var usersPaged = users.Skip((page - 1) * itemsPerPage).Take(itemsPerPage);
+
+            // json result
+            var json = new JsonDto()
+            {
+                count = users.Count(),
+                data = usersPaged.ToArray()
+            };
+
+            return Ok(json);
+        }
+
+        [HttpGet]
+        [Route(&quot;{id:int}/durations&quot;)]
+        public IHttpActionResult GetDurations(int id)
+        {
+            var durations = db.Appointments.Where(x =&gt;
+            x.State == AppointmentState.Accepted &amp;&amp;
+            x.DoctorId == id &amp;&amp;
+            x.Date &gt;= DateTime.Now
+            ).OrderBy(&quot;Date&quot;);
+
+            var durs = new List&lt;object&gt;();
+                foreach(var d in durations)
+            {
+                var finishTime = d.Date + d.Duration;
+                durs.Add(
+                    new
+                    {
+                        Start = d.Date,
+                        Finish = finishTime
+                    }
+                    );
+            }
+            return Ok(durs);
+        }
+
+
+        //Get : api/Doctors?schedule/5
+        [Route(&quot;schedule/{id:int}&quot;)]
+        public IHttpActionResult GetDoctorFromSchedule(int id)
+        {
+
+            var doc = db.Doctors.FirstOrDefault(x =&gt; x.ScheduleId == id);
+            return Ok(new
+            {
+                doc.UserId,
+                FullName = doc.Name + &quot; &quot; + doc.Surname,
+                URLImage = Constants.ThisServer + doc.URLImage,
+                doc.Schedule.StartWorkingTime,
+                doc.Schedule.FinishWorkingTime,
+                doc.ScheduleId
+            });
+
+        }
+
+
+        // GET: api/Doctors/5
+        [Route(&quot;{id:int}&quot;)]
+        public IHttpActionResult GetDoctor(int id, [FromUri] bool all = true)
+        {
+            Doctor doctor = db.Doctors.FirstOrDefault(x =&gt; x.UserId == id &amp;&amp; x.Active != false);
+            if (doctor == null)
+            {
+                return NotFound();
+            }
+
+            var feedbacks = doctor.Feedbacks.Select(x =&gt; new
+            {
+                x.Date,
+                x.Description,
+                x.DoctorId,
+                x.FeedbackId,
+                PatientFullName =
+                (x.Patient == null ? &quot;Anonymous&quot; : x.Patient.Name + &quot; &quot; + x.Patient.Surname),
+                PatientURLImage = (x.Patient == null ? Constants.ThisServer + Constants.DefaultPatientImage : Constants.ThisServer + x.Patient.URLImage)
+            });
+
+            var res = new
+            {
+                doctor.DepartmentId,
+                doctor.UserId,
+                DepartmentName = doctor.Department.Name,
+                doctor.ScheduleId,
+                doctor.FullName,
+                doctor.Phone,
+                doctor.Degree,
+                doctor.Education,
+                DoctorType = doctor.DoctorType.ToString(),
+                Feedbacks = all == true ? feedbacks : feedbacks.Skip(Math.Max(0, doctor.Feedbacks.Count - 3)),
+                FeedbacksCount = doctor.Feedbacks.Count,
+                Gender = doctor.Gender.ToString(),
+                URLImage = Constants.ThisServer + doctor.URLImage,
+                doctor.Schedule.StartWorkingTime,
+                doctor.Schedule.FinishWorkingTime
+            };
+
+            return Ok(res);
+        }
+
+        // GET: api/Doctors/5/Appointments
+        [Route(&quot;{id:int}/Appointments&quot;)]
+        [Authorize(Roles = Roles.AllDoctors + &quot;,&quot; + Roles.Receptionist)]
+        public IHttpActionResult GetAppointmentList(int id)
+        {
+            Doctor doctor = db.Doctors.FirstOrDefault(x =&gt; x.UserId == id);
+            if (doctor == null)
+            {
+                return NotFound();
+            }
+            var res = new
+            {
+                doctor.UserId,
+                doctor.ScheduleId,
+                doctor.Name,
+                doctor.Surname,
+                doctor.Gender,
+                doctor.DateOfBirth,
+                doctor.Address,
+                doctor.Phone,
+                doctor.DepartmentId,
+                doctor.DoctorType,
+                URLImage = Constants.ThisServer + doctor.URLImage,
+
+                Appointments = db.Appointments.Where(x =&gt; x.DoctorId == id &amp;&amp; x.State == AppointmentState.Accepted).Select(a =&gt; new
+                {
+
+                    a.AppointmentId,
+                    PatientFullName = a.Patient.Name + &quot; &quot; + a.Patient.Surname,
+                    a.PatientId,
+                    a.Date,
+                    a.Duration,
+                    State = a.State == 0 ? &quot;Unconfirmed&quot; : &quot;Accepted&quot;
+                })
+            };
+
+            res.Appointments.OrderByDescending(x =&gt; x.Date);
+            return Ok(res);
+
+        }
+
+        // PUT: api/Doctors/5
+        [Route(&quot;{id:int}&quot;)]
+        [ResponseType(typeof(void))]
+        public IHttpActionResult PutDoctor(int id, Doctor doctor)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            if (id != doctor.UserId)
+            {
+                return BadRequest();
+            }
+
+            db.Entry(doctor).State = EntityState.Modified;
+
+            try
+            {
+                db.SaveChanges();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!DoctorExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return StatusCode(HttpStatusCode.NoContent);
+        }
+
+        [HttpPut]
+        [Route(&quot;~/api/scheduleUpdate/{id:int}&quot;)]
+        [ResponseType(typeof(void))]
+        [Authorize(Roles = Roles.Receptionist)]
+        public IHttpActionResult PutWorkingHours(int id, Schedule schedule)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            if (id != schedule.ScheduleId)
+            {
+                return BadRequest();
+            }
+
+            db.Entry(schedule).State = EntityState.Modified;
+
+            try
+            {
+                db.SaveChanges();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!DoctorExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return StatusCode(HttpStatusCode.NoContent);
+        }
+
+        [Route(&quot;&quot;)]
+        // POST: api/Doctors
+        [ResponseType(typeof(Doctor))]
+        public IHttpActionResult PostDoctor(Doctor doctor)
+        {
+            if (!ModelState.IsValid || (db.Users.FirstOrDefault(x =&gt; x.Email == doctor.Email) != null))
+            {
+                return BadRequest(ModelState);
+            }
+
+            Schedule schedule = new Schedule()
+            {
+                StartWorkingTime = TimeSpan.FromHours(0),
+                FinishWorkingTime = TimeSpan.FromHours(0)
+
+            };
+            try
+            {
+
+                db.Schedules.Add(schedule);
+                db.SaveChanges();
+
+                doctor.ScheduleId = schedule.ScheduleId;
+
+                var type = doctor.EmployeeType.ToString();
+
+                doctor.UserClaim = db.UserClaims.FirstOrDefault(x =&gt; x.ClaimValue == type);
+
+                doctor.EmploymentDate = DateTime.Now;
+
+                doctor.URLImage = Constants.DefaultDoctorImage;
+
+                db.Doctors.Add(doctor);
+
+                db.SaveChanges();
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                return InternalServerError(ex);
+            }
+
+            return Ok();
+        }
+        // PATCH: 
+        [Route(&quot;{id:int}&quot;)]
+        public IHttpActionResult PatchActiveState(int id, JsonPatchDocument&lt;Doctor&gt; patchData)
+        {
+            var doctor = db.Doctors.Find(id);
+
+            patchData.ApplyTo(doctor);
+
+            if (doctor.DoctorType == DoctorType.HeadDepartment)
+            {
+                var headDoc = db.Doctors.Where(x =&gt; (x.DepartmentId == doctor.DepartmentId &amp;&amp; x.DoctorType == DoctorType.HeadDepartment)).FirstOrDefault();
+                if (headDoc != null &amp;&amp; headDoc.UserId != doctor.UserId)
+                {
+                    return BadRequest(&quot;Department head is already exists&quot;);
+                }
+            }
+
+            try
+            {
+                db.SaveChanges();
+            }
+            catch (DbEntityValidationException e)
+            {
+                string s = &quot;&quot;;
+                foreach (var eve in e.EntityValidationErrors)
+                {
+                    s += String.Format(&quot;Entity of type \&quot;{0}\&quot; in state \&quot;{1}\&quot; has the following validation errors:&quot;,
+                         eve.Entry.Entity.GetType().Name, eve.Entry.State);
+                    foreach (var ve in eve.ValidationErrors)
+                    {
+                        s += String.Format(&quot;- Property: \&quot;{0}\&quot;, Error: \&quot;{1}\&quot;&quot;,
+                            ve.PropertyName, ve.ErrorMessage);
+                    }
+                }
+
+                return BadRequest(s);
+            }
+            catch (Exception ex)
+            {
+                return InternalServerError();
+            }
+            return Ok();
+
+        }
+
+        /*  // DELETE: api/Doctors/5
+           [ResponseType(typeof(Doctor))]
+           public IHttpActionResult DeleteDoctor(int id)
+           {
+               Doctor doctor = db.Doctors.FirstOrDefault(x =&gt; x.UserId == id);
+               if (doctor == null)
+               {
+                   return NotFound();
+               }
+
+               db.Users.Remove(doctor);
+               db.SaveChanges();
+
+               return Ok(doctor);
+           }*/
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                db.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        private bool DoctorExists(int id)
+        {
+            return db.Users.Count(e =&gt; e.UserId == id) &gt; 0;
+        }
+    }
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[22,9,22,64,0],[22,9,22,64,1],[24,9,24,35,0],[24,36,24,37,0],[24,38,24,39,0],[26,9,26,60,1],[27,9,27,10,1],[28,13,28,31,1],[29,9,29,10,1],[33,9,33,10,1],[34,13,48,16,1],[50,13,50,36,1],[51,13,51,14,1],[52,17,52,72,1],[53,13,53,14,1],[55,13,55,34,1],[56,13,56,14,1],[57,17,57,64,1],[58,13,58,14,1],[60,13,60,52,1],[61,13,61,14,1],[62,17,62,43,1],[63,17,65,87,1],[66,13,66,14,1],[69,13,69,76,1],[72,13,72,87,1],[75,13,79,15,1],[81,13,81,29,1],[82,9,82,10,1],[87,9,87,10,0],[88,13,92,31,0],[94,13,94,43,0],[95,17,95,24,0],[95,25,95,30,0],[95,31,95,33,0],[95,34,95,43,0],[96,13,96,14,0],[97,17,97,54,0],[98,17,104,23,0],[105,13,105,14,0],[106,13,106,29,0],[107,9,107,10,0],[113,9,113,10,0],[115,13,115,74,0],[116,13,124,16,0],[126,9,126,10,0],[132,9,132,10,0],[133,13,133,97,0],[134,13,134,32,0],[135,13,135,14,0],[136,17,136,35,0],[139,13,139,58,0],[139,58,148,14,0],[148,14,148,16,0],[139,13,148,16,0],[150,13,167,15,0],[169,13,169,28,0],[170,9,170,10,0],[176,9,176,10,0],[177,13,177,76,0],[178,13,178,32,0],[179,13,179,14,0],[180,17,180,35,0],[182,13,206,15,0],[208,13,208,61,0],[209,13,209,28,0],[211,9,211,10,0],[217,9,217,10,0],[218,13,218,37,0],[219,13,219,14,0],[220,17,220,47,0],[223,13,223,37,0],[224,13,224,14,0],[225,17,225,37,0],[228,13,228,59,0],[231,13,231,14,0],[232,17,232,34,0],[233,13,233,14,0],[234,13,234,49,0],[235,13,235,14,0],[236,17,236,39,0],[237,17,237,18,0],[238,21,238,39,0],[241,17,241,18,0],[242,21,242,27,0],[246,13,246,57,0],[247,9,247,10,0],[254,9,254,10,0],[255,13,255,37,0],[256,13,256,14,0],[257,17,257,47,0],[260,13,260,43,0],[261,13,261,14,0],[262,17,262,37,0],[265,13,265,61,0],[268,13,268,14,0],[269,17,269,34,0],[270,13,270,14,0],[271,13,271,49,0],[272,13,272,14,0],[273,17,273,39,0],[274,17,274,18,0],[275,21,275,39,0],[278,17,278,18,0],[279,21,279,27,0],[283,13,283,57,0],[284,9,284,10,0],[290,9,290,10,0],[291,13,291,104,0],[292,13,292,14,0],[293,17,293,47,0],[296,13,301,15,0],[303,13,303,14,0],[305,17,305,44,0],[306,17,306,34,0],[308,17,308,57,0],[310,17,310,59,0],[312,17,312,92,0],[314,17,314,54,0],[316,17,316,64,0],[318,17,318,40,0],[320,17,320,34,0],[321,13,321,14,0],[322,13,322,52,0],[323,13,323,14,0],[324,17,324,48,0],[327,13,327,25,0],[328,9,328,10,0],[332,9,332,10,0],[333,13,333,46,0],[335,13,335,39,0],[337,13,337,64,0],[338,13,338,14,0],[339,17,339,156,0],[340,17,340,72,0],[341,17,341,18,0],[342,21,342,76,0],[344,13,344,14,0],[347,13,347,14,0],[348,17,348,34,0],[349,13,349,14,0],[350,13,350,50,0],[351,13,351,14,0],[352,17,352,31,0],[353,17,353,24,0],[353,26,353,33,0],[353,34,353,36,0],[353,37,353,61,0],[354,17,354,18,0],[355,21,356,76,0],[357,21,357,28,0],[357,30,357,36,0],[357,37,357,39,0],[357,40,357,60,0],[358,21,358,22,0],[359,25,360,63,0],[361,21,361,22,0],[362,17,362,18,0],[364,17,364,38,0],[366,13,366,33,0],[367,13,367,14,0],[368,17,368,46,0],[370,13,370,25,0],[372,9,372,10,0],[391,9,391,10,0],[392,13,392,27,0],[393,13,393,14,0],[394,17,394,30,0],[395,13,395,14,0],[396,13,396,37,0],[397,9,397,10,0],[400,9,400,10,0],[401,13,401,60,0],[402,9,402,10,0]]);
+    </script>
+  </body>
+</html>

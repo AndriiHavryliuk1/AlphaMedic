@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>H:\AlphaMedic\AlphaMedic\Rest\Dtos\DoctorDto.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using Rest.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+
+namespace Rest.Dtos
+{
+    public class DoctorDto : ShortUserDto
+    {
+        public int DepartmentId { get; set; }
+        public int DoctorId { get; set; }
+        public string DepartmentName { get; set; }
+        public string Degree { get; set; }
+        public string Education { get; set; }
+        public string DoctorType { get; set; }
+        public TimeSpan StartWorkingTime { get; set; }
+        public TimeSpan FinishWorkingTime { get; set; }
+        public string URLImage { get; set; }
+        public bool? Active { get; set; }
+        public DoctorType DoctorTypeInt { get; set; }
+    }
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[11,35,11,39,1],[11,40,11,44,1],[12,31,12,35,1],[12,36,12,40,1],[13,40,13,44,0],[13,45,13,49,1],[14,32,14,36,0],[14,37,14,41,1],[15,35,15,39,0],[15,40,15,44,1],[16,36,16,40,0],[16,41,16,45,1],[17,44,17,48,0],[17,49,17,53,1],[18,45,18,49,0],[18,50,18,54,1],[19,34,19,38,0],[19,39,19,43,1],[20,31,20,35,1],[20,36,20,40,1],[21,43,21,47,0],[21,48,21,52,1]]);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>H:\AlphaMedic\AlphaMedic\Rest\Dtos\ProcedureDto.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using Rest.Models;
+using System;
+using System.Collections.Generic;
+
+namespace Rest.Dtos
+{
+    public class ProcedureDto
+    {
+        public int ProcedureId { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public DateTime Date { get; set; }
+        public decimal? Price { get; set; }
+        public ShortUserDto Doctor { get; set; }
+        public virtual string Type { get; set; }
+        public AppointmentState State { get; set; }
+
+    }
+
+    public class ExaminationDto : ProcedureDto
+    {
+        public Diagnosis Diagnosis { get; set; }
+        public override string Type { get { return &quot;Examination&quot;; } } 
+    }
+
+    public class VaccinationDto : ProcedureDto
+    {
+        public override string Type { get { return &quot;Vaccination&quot;; } }
+    }
+    public class TreatmentDto : ProcedureDto
+    {
+        public IEnumerable&lt;MedicationDto&gt; Medications { get; set; }
+
+        public string Result { get; set; }
+
+        public override string Type { get { return &quot;Treatment&quot;; } }
+    }
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[9,34,9,38,0],[9,39,9,43,0],[10,30,10,34,0],[10,35,10,39,0],[11,37,11,41,0],[11,42,11,46,0],[12,32,12,36,0],[12,37,12,41,0],[13,33,13,37,0],[13,38,13,42,0],[14,38,14,42,0],[14,43,14,47,0],[15,38,15,42,0],[15,43,15,47,0],[16,41,16,45,0],[16,46,16,50,0],[22,38,22,42,0],[22,43,22,47,0],[23,43,23,44,0],[23,45,23,66,0],[23,67,23,68,0],[28,43,28,44,0],[28,45,28,66,0],[28,67,28,68,0],[32,57,32,61,0],[32,62,32,66,0],[34,32,34,36,0],[34,37,34,41,0],[36,43,36,44,0],[36,45,36,64,0],[36,65,36,66,0]]);
+    </script>
+  </body>
+</html>

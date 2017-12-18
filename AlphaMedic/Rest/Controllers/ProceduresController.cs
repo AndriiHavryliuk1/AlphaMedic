@@ -27,19 +27,24 @@ namespace Rest.Controllers
 
         //GET: api/procedures/5
         [Route("{id:int}")]
-        [Authorize(Roles=Roles.Patinet+"," + Roles.AllDoctors+","+Roles.Receptionist)]
+        [Authorize(Roles = Roles.Patient + "," + Roles.AllDoctors + "," + Roles.Receptionist)]
         public IHttpActionResult GetProcedure(int id)
         {
             var proc = db.Procedures.Find(id);
 
             var currentUser = db.Users.FirstOrDefault(x => x.Email == this.User.Identity.Name);
 
-            if(currentUser==null)
+            if (currentUser == null)
             {
                 return Content(HttpStatusCode.NotFound, Messages.UserNotFound);
             }
 
-            if(this.User.IsInRole(Roles.Patinet) && proc.MedicalHistory.Patient.UserId!=currentUser.UserId)
+            if (this.User.IsInRole(Roles.Patient) && proc.MedicalHistory.Patient.UserId != currentUser.UserId)
+            {
+                return Content(HttpStatusCode.Forbidden, Messages.AccsesDenied);
+            }
+
+            if (Tools.AnyRole(this.User, Roles.DoctorRoles) && proc.Appointment.Doctor.UserId != currentUser.UserId)
             {
                 return Content(HttpStatusCode.Forbidden, Messages.AccsesDenied);
             }
@@ -55,7 +60,7 @@ namespace Rest.Controllers
                                 Name = proc.Name,
                                 Description = proc.Description,
                                 Date = proc.Date,
-                                Price = proc.Price,
+                                Price = proc.Price ?? default(decimal),
                                 Diagnosis = ((Examination)proc).Diagnosis,
                                 Doctor = proc.Appointment.Doctor != null ? new ShortUserDto
                                 {
@@ -66,22 +71,22 @@ namespace Rest.Controllers
                             }
                             );
                     }
-                case "Vaccionation":
+                case "Vaccination":
                     {
                         return Ok(
-                            new VaccionationDto
+                            new VaccinationDto
                             {
                                 ProcedureId = (int)proc.ProcedureId,
                                 Name = proc.Name,
                                 Description = proc.Description,
                                 Date = proc.Date,
-                                Price = (decimal)proc.Price,
-                                Doctor = new ShortUserDto
+                                Price = proc.Price ?? default(decimal),
+                                Doctor = proc.Appointment.Doctor != null ? new ShortUserDto
                                 {
                                     Name = proc.Appointment.Doctor.Name,
                                     Surname = proc.Appointment.Doctor.Surname,
                                     UserId = proc.Appointment.Doctor.UserId
-                                }
+                                } : null
                             }
                             );
                     }
@@ -94,13 +99,13 @@ namespace Rest.Controllers
                                 Name = proc.Name,
                                 Description = proc.Description,
                                 Date = proc.Date,
-                                Price = proc.Price,
-                                Doctor = new ShortUserDto
+                                Price = proc.Price ?? default(decimal),
+                                Doctor = proc.Appointment.Doctor != null ? new ShortUserDto
                                 {
                                     Name = proc.Appointment.Doctor.Name,
                                     Surname = proc.Appointment.Doctor.Surname,
                                     UserId = proc.Appointment.Doctor.UserId
-                                },
+                                } : null,
                                 Result = ((Treatment)proc).Result,
                                 Medications = ((Treatment)proc).Medications.Select(
                                     x => new MedicationDto
@@ -114,7 +119,7 @@ namespace Rest.Controllers
                             );
                     }
             }
-            return null;
+            return BadRequest();
         }
 
         // PUT: api/Procedures/5
@@ -155,7 +160,7 @@ namespace Rest.Controllers
 
         // POST: api/Procedures
         [ResponseType(typeof(Procedure))]
-        [Authorize(Roles=Roles.Receptionist)]
+        [Authorize(Roles = Roles.Receptionist)]
         public IHttpActionResult PostProcedure(Procedure procedure)
         {
             if (!ModelState.IsValid)
@@ -184,21 +189,21 @@ namespace Rest.Controllers
             return CreatedAtRoute("DefaultApi", new { id = procedure.ProcedureId }, procedure);
         }
 
-   /*     // DELETE: api/Procedures/5
-        [ResponseType(typeof(Procedure))]
-        public IHttpActionResult DeleteProcedure(int id)
-        {
-            Procedure procedure = db.Procedures.Find(id);
-            if (procedure == null)
-            {
-                return NotFound();
-            }
+        /*     // DELETE: api/Procedures/5
+             [ResponseType(typeof(Procedure))]
+             public IHttpActionResult DeleteProcedure(int id)
+             {
+                 Procedure procedure = db.Procedures.Find(id);
+                 if (procedure == null)
+                 {
+                     return NotFound();
+                 }
 
-            db.Procedures.Remove(procedure);
-            db.SaveChanges();
+                 db.Procedures.Remove(procedure);
+                 db.SaveChanges();
 
-            return Ok(procedure);
-        }*/
+                 return Ok(procedure);
+             }*/
 
         protected override void Dispose(bool disposing)
         {

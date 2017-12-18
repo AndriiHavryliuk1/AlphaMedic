@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ProjectInfo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.sonarsource.com/msbuild/integration/2015/1">
+  <ProjectName>AuthorizationServer</ProjectName>
+  <ProjectLanguage>C#</ProjectLanguage>
+  <ProjectType>Product</ProjectType>
+  <ProjectGuid>4af50de2-8556-41d2-9776-881a2e43b32e</ProjectGuid>
+  <FullPath>H:\AlphaMedic\AlphaMedic\AuthorizationServer\AuthorizationServer.csproj</FullPath>
+  <IsExcluded>false</IsExcluded>
+  <AnalysisResults>
+    <AnalysisResult Id="FilesToAnalyze" Location="H:\AlphaMedic\AlphaMedic\.sonarqube\out\\AuthorizationServer_6128\FilesToAnalyze.txt" />
+  </AnalysisResults>
+  <AnalysisSettings>
+    <Property Name="sonar.cs.roslyn.reportFilePath">H:\AlphaMedic\AlphaMedic\AuthorizationServer\bin\AuthorizationServer.dll.RoslynCA.json</Property>
+    <Property Name="sonar.cs.analyzer.projectOutPath">H:\AlphaMedic\AlphaMedic\.sonarqube\out\\AuthorizationServer_6128</Property>
+    <Property Name="sonar.stylecop.projectFilePath">H:\AlphaMedic\AlphaMedic\AuthorizationServer\AuthorizationServer.csproj</Property>
+  </AnalysisSettings>
+</ProjectInfo>

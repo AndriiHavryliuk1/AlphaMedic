@@ -45,80 +45,92 @@ namespace Rest.Controllers
 
                 if (maybeDoctor != null)
                 {
-                    if (Tools.AnyRole(this.User, Roles.DoctorRoles)
-                        && maybeDoctor.DoctorType != DoctorType.HospitalDean &&
-                          (maybeDoctor.DoctorType == DoctorType.HeadDepartment && maybeDoctor.DepartmentId != department)
-                        && (doctor != currentUser.UserId || doctor == null))
-                    {
+                    if (!Tools.AnyRole(this.User, Roles.DoctorRoles))
                         return Content(HttpStatusCode.Forbidden, Messages.AccsesDenied);
-                    }
+
+                    if (maybeDoctor.DoctorType != DoctorType.HospitalDean &&
+                     (doctor != currentUser.UserId || doctor == null))
+                        return Content(HttpStatusCode.Forbidden, Messages.AccsesDenied);
+
+                    if (maybeDoctor.DoctorType == DoctorType.HeadDepartment && 
+                        maybeDoctor.DepartmentId != department && 
+                        department != null)
+                        return Content(HttpStatusCode.Forbidden, Messages.AccsesDenied);
                 }
+
+                var users = db.Patients.AsQueryable();
+                if (department != null)
+                {
+                    users = users.Where(x => x.Appointments.Any(d => d.Doctor.DepartmentId == department)); //x.Procedure.Doctor.DepartmentId == department);
+                }
+
+                if (doctor != null)
+                {
+                    users = users.Where(x => x.Appointments.Any(d => d.Doctor.UserId == doctor));//x.Procedure.Doctor.DoctorId == doctor);
+                }
+
+                var nusers = users.//db.Patients.//Include(c => c.Appointments).
+                Select(x => new
+                {
+                    x.UserId,
+                    x.Name,
+                    x.Surname,
+                    URLImage = Constants.ThisServer + x.URLImage,
+
+                    Procedure = x.Appointments.
+                    Where(a => a.State == AppointmentState.Accepted)
+                    .Select(
+                    p => new
+                    {
+                        ProcedureId = p.AppointmentId,
+                        ProcedureName = p.Procedure.Name ?? string.Empty,
+                        Doctor = (p.Doctor != null ?
+                        new
+                        {
+                            DoctorFullName = p.Doctor.Name + " " + p.Doctor.Surname,
+                            DoctorId = p.Doctor.UserId,
+                            DepartmentId = p.Doctor.DepartmentId
+                        }
+                        : null)
+                    }
+                    ).OrderByDescending(i => i.ProcedureId)
+                    .FirstOrDefault()
+                }
+                ).AsQueryable();
+
+
+                // searching
+                if (!string.IsNullOrWhiteSpace(search))
+                {
+                    search = search.ToLower();
+                    nusers = nusers.Where(x =>
+                        (x.Name + x.Surname).ToLower().Contains(search.Replace(" ", "")) ||
+                        (x.Surname + x.Name).ToLower().Contains(search.Replace(" ", "")));
+                }
+
+                // sorting (done with the System.Linq.Dynamic library available on NuGet)
+                nusers = nusers.OrderBy(sortBy + (reverse ? "descending" : ""));
+
+                // paging
+                var usersPaged = nusers.Skip((page - 1) * itemsPerPage).Take(itemsPerPage).ToArray();
+
+                // json result
+                var json = new JsonDto
+                {
+                    count = nusers.Count(),
+                    data = usersPaged
+                };
+
+                return Ok(json);
             }
             catch (ArgumentNullException)
             {
                 return InternalServerError();
             }
-
-            var users = db.Patients.Include(c => c.Appointments).
-            Select(x => new
+            catch (ArgumentException)
             {
-                x.UserId,
-                x.Name,
-                x.Surname,
-                URLImage = Constants.ThisServer + x.URLImage,
-
-                Procedure = x.Appointments.Select(
-                p => new
-                {
-                    ProcedureId = p.AppointmentId,
-                    ProcedureName = p.Procedure.Name ?? string.Empty,
-                    Doctor = (p.Doctor != null ?
-                    new
-                    {
-                        DoctorFullName = p.Doctor.Name + " " + p.Doctor.Surname,
-                        DoctorId = p.Doctor.UserId,
-                        DepartmentId = p.Doctor.DepartmentId
-                    }
-                    : null)
-                }
-                ).FirstOrDefault()
+                return BadRequest();
             }
-            ).AsQueryable();
-
-            if (department != null)
-            {
-                users = users.Where(x => x.Procedure.Doctor.DepartmentId == department);
-            }
-
-            if (doctor != null)
-            {
-                users = users.Where(x => x.Procedure.Doctor.DoctorId == doctor);
-            }
-
-            // searching
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                search = search.ToLower();
-                users = users.Where(x =>
-                    (x.Name + x.Surname).ToLower().Contains(search.Replace(" ", "")) ||
-                    (x.Surname + x.Name).ToLower().Contains(search.Replace(" ", "")));
-            }
-
-            // sorting (done with the System.Linq.Dynamic library available on NuGet)
-            users = users.OrderBy(sortBy + (reverse ? "descending" : ""));
-
-            // paging
-            var usersPaged = users.Skip((page - 1) * itemsPerPage).Take(itemsPerPage);
-
-            // json result
-            var json = new
-            {
-                count = users.Count(),
-                data = usersPaged
-            };
-
-            return Ok(json);
-
         }
         [Authorize]
         [Route("{id:int}/patients")]
@@ -180,7 +192,7 @@ namespace Rest.Controllers
 
             try
             {
-                EMailHelper.SendConfirmRegisterNotification(emailInput, id);
+                // EMailHelper.SendConfirmRegisterNotification(emailInput, id);
             }
             catch (Exception)
             {
@@ -203,28 +215,30 @@ namespace Rest.Controllers
                 return NotFound();
             }
 
-            if (this.User.IsInRole(Roles.Patinet) && currentUser.UserId != id)
+            if (this.User.IsInRole(Roles.Patient) && currentUser.UserId != id)
             {
                 return Content(HttpStatusCode.Forbidden, Messages.AccsesDenied);
             }
 
-            var result = db.Appointments.Where(x => ((x.PatientId == id) && (x.Date > DateTime.Now))).Select(
-               x => new
+            var result = db.Appointments.Where(x => x.PatientId == id &&x.State!=AppointmentState.Finished).Select(x => new
                {
                    x.AppointmentId,
                    x.Date,
                    x.Duration,
-                   State = x.State == 0 ? "Unconfirmed" : "Accepted",
+                   State = x.State.ToString(),
                    x.DoctorId,
                    x.Doctor.Name,
                    x.Doctor.Surname
                }
              );
 
-            result = result.OrderBy("Date" );// + (true ? " descending" : ""));
-            var usersPaged = result.Skip(Math.Max(0, result.Count() - 7)).ToArray();
+            var result2 = result.Where(x => x.Date == null);
+            var result3 = result.Where(x => x.Date > DateTime.Now).OrderByDescending(x => x.Date);
+
+            result = result2.Concat(result3);// + (true ? " descending" : ""));
+            //var usersPaged = result.Skip(Math.Max(0, result.Count() - 7)).ToArray();
             //result.OrderByDescending(x => x.Date).Skip(Math.Max(0, result.Count() - 5));
-            return Ok(usersPaged);
+            return Ok(result);
         }
 
         // GET: api/Patients/5       
@@ -234,36 +248,36 @@ namespace Rest.Controllers
         [Route("{id:int}", Name = "GetPatientById")]
         public IHttpActionResult GetPatient(int id)
         {
-
-
-            var currentUser = db.Users.FirstOrDefault(x => x.Email == this.User.Identity.Name);
-
-            if (currentUser == null)
-            {
-                return NotFound();
-            }
-
-
-            if (this.User.IsInRole(Roles.Patinet) && id != currentUser.UserId)
-            {
-                return Content(HttpStatusCode.Forbidden, Messages.AccsesDenied);
-            }
-
             var patient = db.Patients.FirstOrDefault(x => x.UserId == id);
-
-            if (Tools.AnyRole(this.User, Roles.DoctorRoles) && !patient.Appointments.Any(x => x.DoctorId == currentUser.UserId))
-
-            {
-                return Content(HttpStatusCode.Forbidden, Messages.AccsesDenied);
-            }
-
 
             if (!ModelState.IsValid || patient == null)
             {
                 return NotFound();
             }
 
-            var a = new
+            var currentUser = db.Users.FirstOrDefault(x => x.Email == User.Identity.Name);
+
+            if (currentUser == null)
+                return NotFound();
+
+            if (User.IsInRole(Roles.Patient) && id != currentUser.UserId)
+                return Content(HttpStatusCode.Forbidden, Messages.AccsesDenied);
+
+            if (Tools.AnyRole(this.User, Roles.DoctorRoles))
+            {
+                if (User.IsInRole(Roles.Doctor) && !patient.Appointments.Any(x => x.DoctorId == currentUser.UserId))
+                    return Content(HttpStatusCode.Forbidden, Messages.AccsesDenied);
+
+                var department = db.Doctors.FirstOrDefault(x => x.Email == this.User.Identity.Name).DepartmentId;
+                if (department == default(int))
+                    return NotFound();
+
+                if (User.IsInRole(Roles.DepartmentHead) &&
+                !patient.Appointments.Any(d => d.Doctor.DepartmentId == department))
+                    return Content(HttpStatusCode.Forbidden, Messages.AccsesDenied);
+            }
+
+            var responce = new
             {
                 patient.UserId,
                 patient.FullName,
@@ -277,12 +291,9 @@ namespace Rest.Controllers
                 URLImage = Constants.ThisServer + patient.URLImage
             };
 
-            return Ok(a);
-
-
-
-
+            return Ok(responce);
         }
+
         [Authorize(Roles = Roles.Administrator)]
         [Route("allPatients", Name = "AllPatients")]
         public IHttpActionResult GetAllPatients(int page = 1, int itemsPerPage = 15,
@@ -377,7 +388,7 @@ namespace Rest.Controllers
         }
 
 
-        [Authorize(Roles = Roles.Patinet)]
+        [Authorize(Roles = Roles.Patient)]
         [ResponseType(typeof(void))]
         [HttpPut]
         [Route("changepass/{id:int}", Name = "ChangePass2")]

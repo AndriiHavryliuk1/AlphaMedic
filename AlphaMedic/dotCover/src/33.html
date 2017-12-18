@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>H:\AlphaMedic\AlphaMedic\Rest\Models\UserClaim.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Web;
+
+namespace Rest.Models
+{
+    public class UserClaim
+    {        
+        public UserClaim()
+        {
+            Users = new List&lt;User&gt;();
+        }
+
+        [Key]
+        public int Id { get; set; }
+        public string ClaimType { get; set; }
+        public string ClaimValue { get; set; }
+
+        [JsonIgnore]
+        public virtual ICollection&lt;User&gt; Users { get; set; }
+    }
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[12,9,12,27,0],[13,9,13,10,0],[14,13,14,38,0],[15,9,15,10,0],[18,25,18,29,0],[18,30,18,34,0],[19,35,19,39,0],[19,40,19,44,0],[20,36,20,40,0],[20,41,20,45,0],[23,50,23,54,0],[23,55,23,59,0]]);
+    </script>
+  </body>
+</html>

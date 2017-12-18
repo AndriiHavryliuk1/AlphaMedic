@@ -8,7 +8,7 @@ function check(input) {
 };
 var app = angular.module('alphaMedicApp');
 
-app.controller('EmployeeRegistrationController', function(URL_FOR_REST, sha256, USER_ROLES, $scope, $http, $window, $rootScope,$compile) {
+app.controller('EmployeeRegistrationController', function(URL_FOR_REST, sha256, USER_ROLES, $scope, $http, $window, $rootScope, $compile) {
 
     $scope.failed = false;
     $scope.succed = false;
@@ -22,7 +22,7 @@ app.controller('EmployeeRegistrationController', function(URL_FOR_REST, sha256, 
             $http.get(URL_FOR_REST.url + "api/Departments")
                 .success(function(responce) {
                     $scope.departmentsList = responce;
-                    $scope.DepartmentId =responce[0].DepartmentId;
+                    $scope.DepartmentId = responce[0].DepartmentId;
 
                 });
         } else
@@ -39,6 +39,7 @@ app.controller('EmployeeRegistrationController', function(URL_FOR_REST, sha256, 
         $scope.employee.Password = sha256.convertToSHA256($scope.employee.Password);
         switch ($scope.Type) {
             case USER_ROLES.doctor:
+                $scope.employee.DoctorType = 2;
                 var url = URL_FOR_REST.url + "api/doctors";
                 break;
             case USER_ROLES.receptionist:
@@ -53,7 +54,7 @@ app.controller('EmployeeRegistrationController', function(URL_FOR_REST, sha256, 
             .success(function() {
                 $scope.succed = true;
                 $scope.failed = false;
-                $scope.employee=null;
+                $scope.employee = null;
                 $scope.regiserEmployeeForm.$setPristine();
 
             })

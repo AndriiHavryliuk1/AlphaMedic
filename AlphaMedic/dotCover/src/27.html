@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>H:\AlphaMedic\AlphaMedic\Rest\Models\Patient.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
+using System.Web;
+
+namespace Rest.Models
+{
+    [Table(&quot;Patients&quot;)]
+    public class Patient : User
+    {
+        public Patient()
+        {
+            Appointments = new List&lt;Appointment&gt;();
+            Feedbacks = new List&lt;Feedback&gt;();
+        }
+
+
+        public int? MedicalHistoryId { get; set; }
+        public int? BloodGroupId { get; set; }
+
+
+        public virtual MedicalHistory MedicalHistory { get; set; }
+        public virtual BloodGroup BloodGroup { get; set; }
+        public virtual ICollection&lt;Appointment&gt; Appointments { get; set; }
+        public virtual ICollection&lt;Feedback&gt; Feedbacks { get; set; }
+
+        [NotMapped]
+        public string FullName { get { return this.Name + &quot; &quot; + this.Surname; } }
+    }
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[13,9,13,25,1],[14,9,14,10,1],[15,13,15,52,1],[16,13,16,46,1],[17,9,17,10,1],[20,40,20,44,0],[20,45,20,49,0],[21,36,21,40,0],[21,41,21,45,0],[24,56,24,60,0],[24,61,24,65,0],[25,48,25,52,0],[25,53,25,57,0],[26,64,26,68,1],[26,69,26,73,1],[27,58,27,62,0],[27,63,27,67,1],[30,38,30,39,0],[30,40,30,78,0],[30,79,30,80,0]]);
+    </script>
+  </body>
+</html>

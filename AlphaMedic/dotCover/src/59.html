@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>H:\AlphaMedic\AlphaMedic\Rest\Controllers\MedicationsController.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Web.Http;
+using System.Web.Http.Description;
+using Rest.Models;
+using Rest.Models.AlphaMedicContext;
+using Rest.Dtos;
+using System.Linq.Dynamic;
+using Microsoft.AspNetCore.JsonPatch;
+using System.Data.Entity.Validation;
+
+namespace Rest.Controllers
+{
+    //[Authorize(Roles = &quot;Patient&quot;)]
+    [RoutePrefix(&quot;api/medications&quot;)]
+    public class MedicationsController : ApiController
+    {
+        private AlphaMedicContext db = new AlphaMedicContext();
+
+        public MedicationsController() { }
+
+        public MedicationsController(AlphaMedicContext context)
+        {
+            db = context;
+        }
+
+        // GET: api/Medications
+        [Route(&quot;&quot;)]
+        [Authorize]
+        public IEnumerable&lt;MedicationDto&gt; GetMedications()
+        {
+            try
+            {
+                return db.Medications.Select(
+                    x =&gt; new MedicationDto
+                    {
+                        MedicationId = x.MedicationId,
+                        Description = x.Description,
+                        Price = x.Price
+                    }
+                    );
+            }
+            catch (NullReferenceException)
+            {
+                return Enumerable.Empty&lt;MedicationDto&gt;();
+            }
+        }
+
+
+        [Route(&quot;{id:int}&quot;)]
+        [Authorize(Roles=Roles.Administrator)]
+        public IHttpActionResult PatchMedicationPrice(int id, JsonPatchDocument&lt;Medication&gt; patchData)
+        {
+            var objectToUpdate = db.Medications.Find(id);
+            patchData.ApplyTo(objectToUpdate);
+
+            try
+            {
+                db.SaveChanges();
+            }
+            catch (DbEntityValidationException e)
+            {
+                string s = &quot;&quot;;
+                foreach (var eve in e.EntityValidationErrors)
+                {
+                    s += String.Format(&quot;Entity of type \&quot;{0}\&quot; in state \&quot;{1}\&quot; has the following validation errors:&quot;,
+                         eve.Entry.Entity.GetType().Name, eve.Entry.State);
+                    foreach (var ve in eve.ValidationErrors)
+                    {
+                        s += String.Format(&quot;- Property: \&quot;{0}\&quot;, Error: \&quot;{1}\&quot;&quot;,
+                            ve.PropertyName, ve.ErrorMessage);
+                    }
+                }
+
+                return BadRequest(s);
+            }
+            return Ok();
+
+        }
+
+
+
+        // GET: api/Medications/5
+        [Authorize]
+        [ResponseType(typeof(MedicationDto))]
+        public IHttpActionResult GetMedication(int id)
+        {
+            var medication = db.Medications.Where(x =&gt; x.MedicationId == id).
+                Select(x =&gt; new MedicationDto
+                {
+                    MedicationId = x.MedicationId,
+                    Description = x.Description,
+                    Price = x.Price
+                }).FirstOrDefault();
+
+            if (medication == null)
+            {
+                return NotFound();
+            }
+            return Ok(medication);
+        }
+
+        // POST: api/Medications
+        [Route(&quot;&quot;)]
+        [Authorize(Roles =Roles.Administrator)]
+        [ResponseType(typeof(Medication))]
+        public IHttpActionResult PostMedication(Medication medication)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                db.Medications.Add(medication);
+                db.SaveChanges();
+            }catch(Exception)
+            {
+                return InternalServerError();
+            }
+            
+            return Ok(medication);
+        }
+
+        // DELETE: api/Medications/5
+       /* [ResponseType(typeof(Medication))]
+        public IHttpActionResult DeleteMedication(int id)
+        {
+            Medication medication = db.Medications.Find(id);
+            if (medication == null)
+            {
+                return NotFound();
+            }
+
+            db.Medications.Remove(medication);
+            db.SaveChanges();
+
+            return Ok(medication);
+        }*/
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                db.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        private bool MedicationExists(int id)
+        {
+            return db.Medications.Count(e =&gt; e.MedicationId == id) &gt; 0;
+        }
+    }
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[24,9,24,64,0],[24,9,24,64,1],[26,9,26,39,0],[26,40,26,41,0],[26,42,26,43,0],[28,9,28,64,1],[29,9,29,10,1],[30,13,30,26,1],[31,9,31,10,1],[37,9,37,10,1],[39,13,39,14,1],[40,17,47,23,1],[49,13,49,43,0],[50,13,50,14,0],[51,17,51,58,0],[53,9,53,10,1],[59,9,59,10,0],[60,13,60,58,0],[61,13,61,47,0],[64,13,64,14,0],[65,17,65,34,0],[66,13,66,14,0],[67,13,67,50,0],[68,13,68,14,0],[69,17,69,31,0],[70,17,70,24,0],[70,26,70,33,0],[70,34,70,36,0],[70,37,70,61,0],[71,17,71,18,0],[72,21,73,76,0],[74,21,74,28,0],[74,30,74,36,0],[74,37,74,39,0],[74,40,74,60,0],[75,21,75,22,0],[76,25,77,63,0],[78,21,78,22,0],[79,17,79,18,0],[81,17,81,38,0],[83,13,83,25,0],[85,9,85,10,0],[93,9,93,10,1],[94,13,100,37,1],[102,13,102,36,1],[103,13,103,14,1],[104,17,104,35,1],[106,13,106,35,1],[107,9,107,10,1],[114,9,114,10,1],[115,13,115,37,1],[116,13,116,14,0],[117,17,117,47,0],[121,13,121,14,1],[122,17,122,48,1],[123,17,123,34,1],[124,13,124,14,1],[124,14,124,30,0],[125,13,125,14,0],[126,17,126,46,0],[129,13,129,35,1],[130,9,130,10,1],[149,9,149,10,0],[150,13,150,27,0],[151,13,151,14,0],[152,17,152,30,0],[153,13,153,14,0],[154,13,154,37,0],[155,9,155,10,0],[158,9,158,10,0],[159,13,159,72,0],[160,9,160,10,0]]);
+    </script>
+  </body>
+</html>

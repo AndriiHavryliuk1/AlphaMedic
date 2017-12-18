@@ -26,6 +26,7 @@ app.controller('FeedbacksController', function($window, $routeParams, $http, $sc
                         .success(function(responce) {
                             data.Patient = responce;
                             data.PatientFullName = data.Patient.Name + " " + data.Patient.Surname;
+                            data.PatientURLImage = data.Patient.URLImage;
                             if ($scope.$parent.dep != undefined) {
                                 $scope.$parent.dep.Feedbacks.push(data);
                             } else $scope.$parent.doctor.Feedbacks.push(data);
@@ -35,6 +36,7 @@ app.controller('FeedbacksController', function($window, $routeParams, $http, $sc
 
                     data.Patient = new Object();
                     data.PatientFullName = "Anonymous";
+                    data.PatientURLImage = URL_FOR_REST.url+ "img/patients/profileAvatar.jpg";
                     if ($scope.$parent.dep != undefined) {
                         $scope.$parent.dep.Feedbacks.push(data);
                     } else $scope.$parent.doctor.Feedbacks.push(data);

@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>H:\AlphaMedic\AlphaMedic\RestTests\Controllers\MedicationsControllerTests.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using System.Data.Entity;
+using Rest.Controllers;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web.Http.Results;
+using Rest.Dtos;
+using Rest.Models.AlphaMedicContext;
+using Rest.Models;
+
+namespace Rest.Controllers.Tests
+{
+
+    [TestClass()]
+    public class MedicationsControllerTests
+    {
+        private static MedicationsController GetMedicationsController()
+        {
+            var emptyData = Enumerable.Empty&lt;Medication&gt;().AsQueryable();
+            var mockSet = new Mock&lt;DbSet&lt;Medication&gt;&gt;();
+            var mockContext = new Mock&lt;AlphaMedicContext&gt;();
+            mockSet.As&lt;IQueryable&lt;Medication&gt;&gt;().Setup(m =&gt; m.Provider).Returns(emptyData.Provider);
+            mockSet.As&lt;IQueryable&lt;Medication&gt;&gt;().Setup(m =&gt; m.Expression).Returns(emptyData.Expression);
+            mockSet.As&lt;IQueryable&lt;Medication&gt;&gt;().Setup(m =&gt; m.ElementType).Returns(emptyData.ElementType);
+            mockSet.As&lt;IQueryable&lt;Medication&gt;&gt;().Setup(m =&gt; m.GetEnumerator()).Returns(() =&gt; emptyData.GetEnumerator());
+            mockContext.Setup(c =&gt; c.Medications).Returns(mockSet.Object);
+            var service = new MedicationsController(mockContext.Object);
+            return service;
+        }
+
+        //private static MedicationsController GetMedicationsController()
+        //{
+        //    var mockSet = new Mock&lt;DbSet&lt;Medication&gt;&gt;();
+        //    var mockContext = new Mock&lt;AlphaMedicContext.AlphaMedicContext&gt;();
+        //    mockContext.Setup(c =&gt; c.Medications).Returns(mockSet.Object);
+        //    var service = new MedicationsController(mockContext.Object);
+        //    return service;
+        //}
+
+        private static MedicationsController GetMedicationsControllerWithData(IEnumerable&lt;Medication&gt; data)
+        {
+            var newdata = data.AsQueryable();
+            var mockSet = new Mock&lt;DbSet&lt;Medication&gt;&gt;();
+            mockSet.As&lt;IQueryable&lt;Medication&gt;&gt;().Setup(m =&gt; m.Provider).Returns(newdata.Provider);
+            mockSet.As&lt;IQueryable&lt;Medication&gt;&gt;().Setup(m =&gt; m.Expression).Returns(newdata.Expression);
+            mockSet.As&lt;IQueryable&lt;Medication&gt;&gt;().Setup(m =&gt; m.ElementType).Returns(newdata.ElementType);
+            mockSet.As&lt;IQueryable&lt;Medication&gt;&gt;().Setup(m =&gt; m.GetEnumerator()).Returns(() =&gt; newdata.GetEnumerator());
+            var mockContext = new Mock&lt;AlphaMedicContext&gt;();
+            mockContext.Setup(c =&gt; c.Medications).Returns(mockSet.Object);
+            var service = new MedicationsController(mockContext.Object);
+            return service;
+        }
+
+
+        [TestMethod()]
+        public void GetMedications_GetData_IdIsEqual_Test()
+        {
+            var medication = new Medication
+            {
+                MedicationId = 1,
+                Description = &quot;Drug1&quot;,
+                Price = 20
+            };
+            var expected = 1;
+            var service = GetMedicationsControllerWithData(new[] { medication });
+            var medications = service.GetMedications().ToArray();
+            var actual = medications[0].MedicationId;
+            Assert.AreEqual(expected, actual);
+        }
+
+        [TestMethod()]
+        public void GetMedications_GetData_DescriptionIsEqual_Test()
+        {
+            var medication = new Medication
+            {
+                MedicationId = 1,
+                Description = &quot;Drug1&quot;,
+                Price = 20
+            };
+            var expected = &quot;Drug1&quot;;
+            var service = GetMedicationsControllerWithData(new[] { medication });
+            var medications = service.GetMedications().ToArray();
+            var actual = medications[0].Description;
+            Assert.AreEqual(expected, actual);
+        }
+
+        [TestMethod()]
+        public void GetMedications_GetData_PriceIsEqual_Test()
+        {
+            var medication = new Medication
+            {
+                MedicationId = 1,
+                Description = &quot;Drug1&quot;,
+                Price = 20
+            };
+            var expected = 20m;
+            var service = GetMedicationsControllerWithData(new[] { medication });
+            var medications = service.GetMedications().ToArray();
+            var actual = medications[0].Price;
+            Assert.AreEqual(expected, actual);
+        }
+
+        [TestMethod]
+        public void GetMedications_GetData_CountIsCorrect_Test()
+        {
+
+            var data = new[]
+            {
+                new Medication
+                {
+                    MedicationId = 1,
+                    Description = &quot;Drug1&quot;,
+                    Price = 20
+                },
+                new Medication
+                {
+                    MedicationId = 2,
+                    Description = &quot;Drug2&quot;,
+                    Price = 30
+                }
+            };
+            var expected = 2;
+            var service = GetMedicationsControllerWithData(data);
+            var medications = service.GetMedications().ToArray();
+            var actual = medications.Length;
+            Assert.AreEqual(expected, actual);
+        }
+
+        [TestMethod]
+        public void GetMedication_GetExistingMedication_ResponceIsNotNull_Test()
+        {
+            var medication = new Medication
+            {
+                MedicationId = 1,
+                Description = &quot;Drug1&quot;,
+                Price = 20
+            };
+
+            var service = GetMedicationsControllerWithData(new[] { medication });
+            var actionResult = service.GetMedication(1)
+                as OkNegotiatedContentResult&lt;MedicationDto&gt;;
+            Assert.IsNotNull(actionResult);
+        }
+
+        [TestMethod]
+        public void GetMedication_GetExistingMedication_ContentIsNotNull_Test()
+        {
+            var medication = new Medication
+            {
+                MedicationId = 1,
+                Description = &quot;Drug1&quot;,
+                Price = 20
+            };
+
+            var service = GetMedicationsControllerWithData(new[] { medication });
+            var actionResult = service.GetMedication(1)
+                as OkNegotiatedContentResult&lt;MedicationDto&gt;;
+            Assert.IsNotNull(actionResult.Content);
+        }
+
+        [TestMethod]
+        public void GetMedication_GetExistingMedication_ContentIdIsCorrect_Test()
+        {
+            var medication = new Medication
+            {
+                MedicationId = 1,
+                Description = &quot;Drug1&quot;,
+                Price = 20
+            };
+
+            var expected = 1;
+            var service = GetMedicationsControllerWithData(new[] { medication });
+            var actionResult = service.GetMedication(1)
+                as OkNegotiatedContentResult&lt;MedicationDto&gt;;
+            var actual = actionResult.Content.MedicationId;
+            Assert.AreEqual(expected, actual);
+        }
+
+        [TestMethod]
+        public void GetMedication_GetExistingMedication_ContentDescriptionIsCorrect_Test()
+        {
+            var medication = new Medication
+            {
+                MedicationId = 1,
+                Description = &quot;Drug1&quot;,
+                Price = 20
+            };
+
+            var expected = &quot;Drug1&quot;;
+            var service = GetMedicationsControllerWithData(new[] { medication });
+            var actionResult = service.GetMedication(1)
+                as OkNegotiatedContentResult&lt;MedicationDto&gt;;
+            var actual = actionResult.Content.Description;
+            Assert.AreEqual(expected, actual);
+        }
+
+        [TestMethod]
+        public void GetMedication_GetExistingMedication_ContentPriceIsCorrect_Test()
+        {
+            var medication = new Medication
+            {
+                MedicationId = 1,
+                Description = &quot;Drug1&quot;,
+                Price = 20
+            };
+
+            var expected = 20m;
+            var service = GetMedicationsControllerWithData(new[] { medication });
+            var actionResult = service.GetMedication(1)
+                as OkNegotiatedContentResult&lt;MedicationDto&gt;;
+            var actual = actionResult.Content.Price;
+            Assert.AreEqual(expected, actual);
+        }
+
+        [TestMethod]
+        public void GetMedication_GetNotExistingMedication_ReturnsNotFound_Test()
+        {
+            var medication = new Medication
+            {
+                MedicationId = 1,
+                Description = &quot;Drug1&quot;,
+                Price = 20
+            };
+            var service = GetMedicationsControllerWithData(new[] { medication });
+            var actionResult = service.GetMedication(2);
+            Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public void PostMedication_AddNewMedication_ReturnCorrectActionResult_Test()
+        {
+            var medication = new Medication
+            {
+                MedicationId = 1,
+                Description = &quot;Drug1&quot;,
+                Price = 20
+            };
+            var servise = GetMedicationsController();
+            var actionResult = servise.PostMedication(medication);
+            Assert.IsInstanceOfType(
+                actionResult, typeof(OkNegotiatedContentResult&lt;Medication&gt;));
+        }
+
+        [TestMethod]
+        public void PostMedication_AddNewMedication_ReturnsCorrectResponceId_Test()
+        {
+            var medication = new Medication
+            {
+                MedicationId = 1,
+                Description = &quot;Drug1&quot;,
+                Price = 20
+            };
+
+            var expected = 1;
+
+            var servise = GetMedicationsController();
+            var actionResult =servise.PostMedication(medication)            
+                as OkNegotiatedContentResult&lt;Medication&gt;;
+            var actual = actionResult.Content.MedicationId;
+            Assert.AreEqual(expected, actual);
+        }
+
+        [TestMethod]
+        public void PostMedication_AddNewMedication_GetMedicationByIdReturnsCorrectResponceDescription_Test()
+        {
+            var medication = new Medication
+            {
+                MedicationId = 1,
+                Description = &quot;Drug1&quot;,
+                Price = 20
+            };
+
+            var expected = &quot;Drug1&quot;;
+
+            var servise = GetMedicationsController();
+            var actionResult = servise.PostMedication(medication)
+                as OkNegotiatedContentResult&lt;Medication&gt;;
+            var actual = actionResult.Content.Description;
+            Assert.AreEqual(expected, actual);
+        }
+
+        [TestMethod]
+        public void PostMedication_AddNewMedication_GetMedicationByIdReturnsCorrectResponcePrice_Test()
+        {
+            var medication = new Medication
+            {
+                MedicationId = 1,
+                Description = &quot;Drug1&quot;,
+                Price = 20
+            };
+
+            var expected = 20m;
+
+            var servise = GetMedicationsController();
+            var actionResult = servise.PostMedication(medication)
+                as OkNegotiatedContentResult&lt;Medication&gt;;
+            var actual = actionResult.Content.Price;
+            Assert.AreEqual(expected, actual);
+        }
+    }
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[19,9,19,10,1],[20,13,20,74,1],[21,13,21,57,1],[22,13,22,61,1],[23,13,23,101,1],[24,13,24,105,1],[25,13,25,107,1],[26,13,26,94,1],[26,94,26,119,0],[26,119,26,121,1],[26,13,26,121,1],[27,13,27,75,1],[28,13,28,73,1],[29,13,29,28,1],[30,9,30,10,1],[42,9,42,10,1],[43,13,43,46,1],[44,13,44,57,1],[45,13,45,99,1],[46,13,46,103,1],[47,13,47,105,1],[48,13,48,94,1],[48,94,48,117,0],[48,117,48,119,1],[48,13,48,119,1],[49,13,49,61,1],[50,13,50,75,1],[51,13,51,73,1],[52,13,52,28,1],[53,9,53,10,1],[58,9,58,10,1],[59,13,64,15,1],[65,13,65,30,1],[66,13,66,82,1],[67,13,67,66,1],[68,13,68,54,1],[69,13,69,47,1],[70,9,70,10,1],[74,9,74,10,1],[75,13,80,15,1],[81,13,81,36,1],[82,13,82,82,1],[83,13,83,66,1],[84,13,84,53,1],[85,13,85,47,1],[86,9,86,10,1],[90,9,90,10,1],[91,13,96,15,1],[97,13,97,32,1],[98,13,98,82,1],[99,13,99,66,1],[100,13,100,47,1],[101,13,101,47,1],[102,9,102,10,1],[106,9,106,10,1],[108,13,122,15,1],[123,13,123,30,1],[124,13,124,66,1],[125,13,125,66,1],[126,13,126,45,1],[127,13,127,47,1],[128,9,128,10,1],[132,9,132,10,1],[133,13,138,15,1],[140,13,140,82,1],[141,13,142,61,1],[143,13,143,44,1],[144,9,144,10,1],[148,9,148,10,1],[149,13,154,15,1],[156,13,156,82,1],[157,13,158,61,1],[159,13,159,52,1],[160,9,160,10,1],[164,9,164,10,1],[165,13,170,15,1],[172,13,172,30,1],[173,13,173,82,1],[174,13,175,61,1],[176,13,176,60,1],[177,13,177,47,1],[178,9,178,10,1],[182,9,182,10,1],[183,13,188,15,1],[190,13,190,36,1],[191,13,191,82,1],[192,13,193,61,1],[194,13,194,59,1],[195,13,195,47,1],[196,9,196,10,1],[200,9,200,10,1],[201,13,206,15,1],[208,13,208,32,1],[209,13,209,82,1],[210,13,211,61,1],[212,13,212,53,1],[213,13,213,47,1],[214,9,214,10,1],[218,9,218,10,1],[219,13,224,15,1],[225,13,225,82,1],[226,13,226,57,1],[227,13,227,75,1],[228,9,228,10,1],[232,9,232,10,1],[233,13,238,15,1],[239,13,239,54,1],[240,13,240,67,1],[241,13,242,78,1],[243,9,243,10,1],[247,9,247,10,1],[248,13,253,15,1],[255,13,255,30,1],[257,13,257,54,1],[258,13,259,58,1],[260,13,260,60,1],[261,13,261,47,1],[262,9,262,10,1],[266,9,266,10,1],[267,13,272,15,1],[274,13,274,36,1],[276,13,276,54,1],[277,13,278,58,1],[279,13,279,59,1],[280,13,280,47,1],[281,9,281,10,1],[285,9,285,10,1],[286,13,291,15,1],[293,13,293,32,1],[295,13,295,54,1],[296,13,297,58,1],[298,13,298,53,1],[299,13,299,47,1],[300,9,300,10,1]]);
+    </script>
+  </body>
+</html>

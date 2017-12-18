@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>H:\AlphaMedic\AlphaMedic\Rest\Models\Constants.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+
+namespace Rest.Models
+{
+    public struct Messages
+    {
+        public const string  AccsesDenied= &quot;Access denied&quot;;
+        public const string  AppointmentNotFound = &quot;Appointment not found&quot;;
+        public const string UserNotFound = &quot;User not found&quot;;
+        public const string BadDataInFields = &quot;Some fields contains bad data&quot;;
+    }
+
+      
+    public  class Roles
+    {
+        public   const string Administrator = &quot;Administrator&quot;;
+        public const string Doctor = &quot;Doctor&quot;;
+        public const string AllDoctors = &quot;Doctor,HospitalDean,HeadDepartment&quot;;
+        public const string HospitalDean = &quot;HospitalDean&quot;;
+        public const string DepartmentHead = &quot;HeadDepartment&quot;;
+        public const string Receptionist = &quot;Receptionist&quot;;
+        public const string Patient = &quot;Patient&quot;;
+        public static List&lt;string&gt; DoctorRoles = new List&lt;string&gt; { &quot;Doctor&quot;, &quot;HospitalDean&quot;, &quot;HeadDepartment&quot; };       
+    }
+   
+    public static class Constants
+    {
+        public  const string ThisServer = @&quot;http://localhost:63741/&quot;;
+        public const string MyClient = @&quot;http://127.0.0.1:8081/&quot;;
+        public const string DefaultDoctorImage = @&quot;img/docs/profileAvatar.jpg&quot;;
+        public  const string DefaultPatientImage = @&quot;img/patients/profileAvatar.jpg&quot;;
+
+            
+    }
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[26,9,26,114,1]]);
+    </script>
+  </body>
+</html>

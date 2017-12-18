@@ -14,6 +14,7 @@ app.controller('DepartmentInfoController', function(URL_FOR_REST, $scope, $http,
             $scope.AllFeedbacks = true;
             $scope.ButtonName = "Show last feedbacks";
         }
+        LoadDepartmentsInfo();
     }
 
     $scope.isHidePatients = localStorage.getItem('token') == undefined ? true : false;

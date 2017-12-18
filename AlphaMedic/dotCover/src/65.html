@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>H:\AlphaMedic\AlphaMedic\Rest\Controllers\WarningLabelsController.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Web.Http;
+using System.Web.Http.Description;
+using Rest.Models;
+using Rest.Models.AlphaMedicContext;
+
+namespace Rest.Controllers
+{
+    public class WarningLabelsController : ApiController
+    {
+        private AlphaMedicContext db = new AlphaMedicContext();
+
+        // GET: api/WarningLabels
+        public IQueryable&lt;WarningLabel&gt; GetWarningLabels()
+        {
+            return db.WarningLabels;
+        }
+
+        // GET: api/WarningLabels/5
+        [Authorize]
+        [ResponseType(typeof(WarningLabel))]
+        public IHttpActionResult GetWarningLabel(int id)
+        {
+
+
+            var currentUser = db.Users.FirstOrDefault(x =&gt; x.Email == this.User.Identity.Name);
+
+            if (currentUser == null)
+            {
+                return NotFound();
+            }
+
+            WarningLabel warningLabel = db.WarningLabels.Find(id);
+            if (warningLabel == null)
+            {
+                return NotFound();
+            }
+
+            if (Tools.AnyRole(this.User,Roles.DoctorRoles) &amp;&amp; !warningLabel.MedicalHistory.Patient.Appointments.Any(x =&gt; x.DoctorId == currentUser.UserId))
+            {
+                return Content(HttpStatusCode.Forbidden, Messages.AccsesDenied);
+            }
+            if (this.User.IsInRole(Roles.Patient) &amp;&amp;  warningLabel.MedicalHistory.Patient.UserId != currentUser.UserId)
+            {
+                return Content(HttpStatusCode.Forbidden, Messages.AccsesDenied);
+            }
+
+            
+
+            return Ok(warningLabel);
+
+
+
+
+
+        }
+
+        // PUT: api/WarningLabels/5
+        [Authorize(Roles=Roles.AllDoctors)]
+        [ResponseType(typeof(void))]
+        public IHttpActionResult PutWarningLabel(int id, WarningLabel warningLabel)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            if (id != warningLabel.WarningLabelId)
+            {
+                return BadRequest();
+            }
+
+           
+
+            db.Entry(warningLabel).State = EntityState.Modified;
+
+            try
+            {
+                db.SaveChanges();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!WarningLabelExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return StatusCode(HttpStatusCode.NoContent);
+        }
+
+        // POST: api/WarningLabels
+        [Authorize(Roles=Roles.AllDoctors)]
+      
+        public IHttpActionResult PostWarningLabel(WarningLabel warningLabel)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            var currentUser = db.Users.FirstOrDefault(x =&gt; x.Email == this.User.Identity.Name);
+            var medHist = db.MedicalHistorys.Find(warningLabel.MedicalHistoryId);
+          
+            if (currentUser == null)
+            {
+                return NotFound();
+            }
+            if (medHist == null ||  !medHist.Patient.Appointments.Any(x =&gt; x.DoctorId == currentUser.UserId))
+            {
+                return Content(HttpStatusCode.Forbidden,Messages.AccsesDenied);
+            }
+           
+            db.WarningLabels.Add(warningLabel);
+            db.SaveChanges();
+
+            return Ok(new { warningLabel.Description, warningLabel.WarningLabelId,warningLabel.MedicalHistoryId});
+            
+        }
+
+        /*   // DELETE: api/WarningLabels/5
+           [ResponseType(typeof(WarningLabel))]
+           public IHttpActionResult DeleteWarningLabel(int id)
+           {
+               WarningLabel warningLabel = db.WarningLabels.Find(id);
+               if (warningLabel == null)
+               {
+                   return NotFound();
+               }
+
+               db.WarningLabels.Remove(warningLabel);
+               db.SaveChanges();
+
+               return Ok(warningLabel);
+           }
+           */
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                db.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        private bool WarningLabelExists(int id)
+        {
+            return db.WarningLabels.Count(e =&gt; e.WarningLabelId == id) &gt; 0;
+        }
+    }
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[18,9,18,64,0],[22,9,22,10,0],[23,13,23,37,0],[24,9,24,10,0],[30,9,30,10,0],[33,13,33,96,0],[35,13,35,37,0],[36,13,36,14,0],[37,17,37,35,0],[40,13,40,67,0],[41,13,41,38,0],[42,13,42,14,0],[43,17,43,35,0],[46,13,46,122,0],[46,122,46,154,0],[46,154,46,156,0],[46,13,46,156,0],[47,13,47,14,0],[48,17,48,81,0],[50,13,50,120,0],[51,13,51,14,0],[52,17,52,81,0],[57,13,57,37,0],[63,9,63,10,0],[69,9,69,10,0],[70,13,70,37,0],[71,13,71,14,0],[72,17,72,47,0],[75,13,75,51,0],[76,13,76,14,0],[77,17,77,37,0],[82,13,82,65,0],[85,13,85,14,0],[86,17,86,34,0],[87,13,87,14,0],[88,13,88,49,0],[89,13,89,14,0],[90,17,90,45,0],[91,17,91,18,0],[92,21,92,39,0],[95,17,95,18,0],[96,21,96,27,0],[100,13,100,57,0],[101,9,101,10,0],[107,9,107,10,0],[108,13,108,37,0],[109,13,109,14,0],[110,17,110,47,0],[112,13,112,96,0],[113,13,113,82,0],[115,13,115,37,0],[116,13,116,14,0],[117,17,117,35,0],[119,13,119,76,0],[119,76,119,108,0],[119,108,119,110,0],[119,13,119,110,0],[120,13,120,14,0],[121,17,121,80,0],[124,13,124,48,0],[125,13,125,30,0],[127,13,127,115,0],[129,9,129,10,0],[148,9,148,10,0],[149,13,149,27,0],[150,13,150,14,0],[151,17,151,30,0],[152,13,152,14,0],[153,13,153,37,0],[154,9,154,10,0],[157,9,157,10,0],[158,13,158,76,0],[159,9,159,10,0]]);
+    </script>
+  </body>
+</html>

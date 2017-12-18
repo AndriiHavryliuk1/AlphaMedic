@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>H:\AlphaMedic\AlphaMedic\Rest\Dtos\EmployeeDto.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using Rest.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+
+namespace Rest.Dtos
+{
+    public class EmployeeDto:UserDto
+    {
+        public DateTime EmploymentDate { get; set; }
+        public string EmploymentRecordBookNumber { get; set; }
+        public DateTime? DismissalDate { get; set; }
+        public EmployeeType EmployeeType { get; set; }
+        
+        public void UpateEmployee(Employee emp)
+        {
+            emp.Name = Name;
+            emp.Surname = Surname;
+            emp.Phone = Phone;
+            emp.Email = Email;
+            emp.EmploymentRecordBookNumber = EmploymentRecordBookNumber;
+            emp.Address = Address;
+            emp.EmployeeType = EmployeeType;
+            
+        }
+
+    }
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[11,42,11,46,0],[11,47,11,51,0],[12,52,12,56,0],[12,57,12,61,0],[13,42,13,46,0],[13,47,13,51,0],[14,44,14,48,0],[14,49,14,53,0],[17,9,17,10,0],[18,13,18,29,0],[19,13,19,35,0],[20,13,20,31,0],[21,13,21,31,0],[22,13,22,73,0],[23,13,23,35,0],[24,13,24,45,0],[26,9,26,10,0]]);
+    </script>
+  </body>
+</html>

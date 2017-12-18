@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>H:\AlphaMedic\AlphaMedic\Rest\Dtos\PatientDto.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+
+namespace Rest.Dtos
+{
+    public class PatientDto : ShortUserDto
+    {
+        public string URLImage { get; set; }
+        public AppointmentDto Procedure { get; set; }
+
+
+        //    x.UserId,
+        //                x.Name,
+        //                x.Surname,
+        //                URLImage = Constants.ThisServer + x.URLImage,
+
+        //                Procedure = x.Appointments.Select(
+        //                p =&gt; new
+        //                {
+        //                    p.AppointmentId,
+        //                    ProcedureName = p.Procedure.Name,
+        //                    DoctorFullName = p.Doctor.Name + &quot; &quot; + p.Doctor.Surname,
+        //                    DoctorId = p.Doctor.UserId,
+        //                    DepartmentId = p.Doctor.DepartmentId
+        //}
+        //                ).FirstOrDefault()
+    }
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[10,34,10,38,0],[10,39,10,43,0],[11,43,11,47,0],[11,48,11,52,0]]);
+    </script>
+  </body>
+</html>

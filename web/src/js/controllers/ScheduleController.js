@@ -1,12 +1,11 @@
 var app = angular.module('alphaMedicApp');
 app.controller('ScheduleController', function(URL_FOR_REST, $timeout, $scope, $http, $routeParams) {
 
-    $http.get(URL_FOR_REST.url + "api/doctors/" + $routeParams["id"])
+    $http.get(URL_FOR_REST.url + "api/doctors/schedule/" + $routeParams["id"])
         .success(function(responce) {
             $scope.doctor = responce;
-            $scope.doctor.Id = $routeParams["id"];
             $scope.schedule = {
-                ScheduleId: $routeParams["id"],
+                ScheduleId: $scope.doctor.ScheduleId,
                 StartWorkingTime: $scope.doctor.StartWorkingTime,
                 FinishWorkingTime: $scope.doctor.FinishWorkingTime
             };

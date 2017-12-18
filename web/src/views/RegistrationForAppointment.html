@@ -28,7 +28,7 @@
                 <div class="form-group">
                     <label for="symptoms" class="col-sm-3 control-label">Symptoms*</label>
                     <div class="col-sm-9">
-                        <textarea class="form-control" required ng-model="appointment.Description" rows="5" id="symptoms" placeholder="Enter your problem here..."></textarea>
+                        <textarea class="form-control" style="resize:none;" required ng-model="appointment.Description" rows="5" id="symptoms" placeholder="Enter your problem here..."></textarea>
                     </div>
                 </div>
                 <br>
@@ -37,14 +37,15 @@
                     <div class="dropdown">
                         <a class="dropdown-toggle my-toggle-select col-sm-9" id="dLabel" role="button" data-toggle="dropdown" data-target="#" href="">
                             <div class="input-append">
-                                <input type="text" class="form-control" value="{{appointment.Date | date:'yyyy-MM-dd HH:mm'}}">
+                                <input  type="text" class="dateInput form-control " id="appointmentDateInput"
+                                ng-value="appointment.Date|date:'yyyy-MM-dd HH:mm'"  readonly />
                                 <span class="add-on">
                                     <i class="icon-calendar"></i>
                                 </span>
                             </div>
                         </a>
                         <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-                            <datetimepicker data-ng-model="appointment.Date"></datetimepicker>
+                            <datetimepicker data-ng-model="appointment.Date " ></datetimepicker>
                         </ul>
                     </div>
                 </div>
@@ -61,6 +62,10 @@
                 <div class="alert alert-danger" ng-show="failed">
                     <strong>Server Error!</strong>
                     Can't create appointment. Please try to do it later.
+                </div>
+                <div class="alert alert-danger" ng-show="dateFail">
+                    <strong>Input Error!</strong>
+                    You fill wrong date. Please, choose future date.
                 </div>
                 <div class="form-group">
                     <div class="row">

@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>H:\AlphaMedic\AlphaMedic\RestTests\Controllers\DepartmentsControllerTests.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using Rest.Dtos;
+using Rest.Models;
+using Rest.Models.AlphaMedicContext;
+using System;
+using System.Collections.Generic;
+using System.Data.Entity;
+using System.Linq;
+using System.Web.Http.Results;
+
+
+namespace Rest.Controllers.Tests
+{
+    [TestClass()]
+    public class DepartmentsControllerTests
+    {
+        private static DepartmentsController GetDepartmentsControllerWithInstalledDoctors(
+             IEnumerable&lt;Department&gt; departmentsData,
+             IEnumerable&lt;Doctor&gt; doctorsData)
+        {
+            var dpData = departmentsData.AsQueryable();
+            var dcData = doctorsData.AsQueryable();
+
+            var mockDepSet = new Mock&lt;DbSet&lt;Department&gt;&gt;();
+            var mockDocSet = new Mock&lt;DbSet&lt;Doctor&gt;&gt;();
+            var mockContext = new Mock&lt;AlphaMedicContext&gt;();
+            mockDepSet.As&lt;IQueryable&lt;Department&gt;&gt;().Setup(m =&gt; m.Provider).Returns(dpData.Provider);
+            mockDepSet.As&lt;IQueryable&lt;Department&gt;&gt;().Setup(m =&gt; m.Expression).Returns(dpData.Expression);
+            mockDepSet.As&lt;IQueryable&lt;Department&gt;&gt;().Setup(m =&gt; m.ElementType).Returns(dpData.ElementType);
+            mockDepSet.As&lt;IQueryable&lt;Department&gt;&gt;().Setup(m =&gt; m.GetEnumerator()).Returns(() =&gt; dpData.GetEnumerator());
+
+            mockDocSet.As&lt;IQueryable&lt;Doctor&gt;&gt;().Setup(m =&gt; m.Provider).Returns(dcData.Provider);
+            mockDocSet.As&lt;IQueryable&lt;Doctor&gt;&gt;().Setup(m =&gt; m.Expression).Returns(dcData.Expression);
+            mockDocSet.As&lt;IQueryable&lt;Doctor&gt;&gt;().Setup(m =&gt; m.ElementType).Returns(dcData.ElementType);
+            mockDocSet.As&lt;IQueryable&lt;Doctor&gt;&gt;().Setup(m =&gt; m.GetEnumerator()).Returns(() =&gt; dcData.GetEnumerator());
+
+            mockContext.Setup(c =&gt; c.Departments).Returns(mockDepSet.Object);
+            mockContext.Setup(d =&gt; d.Doctors).Returns(mockDocSet.Object);
+            var service = new DepartmentsController(mockContext.Object);
+            return service;
+        }
+
+
+
+
+        private static DepartmentsController GetDepartmentsController()
+        {
+            var emptyData = Enumerable.Empty&lt;Department&gt;().AsQueryable();
+            var mockSet = new Mock&lt;DbSet&lt;Department&gt;&gt;();
+            var mockContext = new Mock&lt;AlphaMedicContext&gt;();
+            mockSet.As&lt;IQueryable&lt;Department&gt;&gt;().Setup(m =&gt; m.Provider).Returns(emptyData.Provider);
+            mockSet.As&lt;IQueryable&lt;Department&gt;&gt;().Setup(m =&gt; m.Expression).Returns(emptyData.Expression);
+            mockSet.As&lt;IQueryable&lt;Department&gt;&gt;().Setup(m =&gt; m.ElementType).Returns(emptyData.ElementType);
+            mockSet.As&lt;IQueryable&lt;Department&gt;&gt;().Setup(m =&gt; m.GetEnumerator()).Returns(() =&gt; emptyData.GetEnumerator());
+            mockContext.Setup(c =&gt; c.Departments).Returns(mockSet.Object);
+            var service = new DepartmentsController(mockContext.Object);
+            return service;
+        }
+
+        private static DepartmentsController GetDepartmentsControllerWithData(IEnumerable&lt;Department&gt; data)
+        {
+            var newdata = data.AsQueryable();
+            var mockSet = new Mock&lt;DbSet&lt;Department&gt;&gt;();
+            mockSet.As&lt;IQueryable&lt;Department&gt;&gt;().Setup(m =&gt; m.Provider).Returns(newdata.Provider);
+            mockSet.As&lt;IQueryable&lt;Department&gt;&gt;().Setup(m =&gt; m.Expression).Returns(newdata.Expression);
+            mockSet.As&lt;IQueryable&lt;Department&gt;&gt;().Setup(m =&gt; m.ElementType).Returns(newdata.ElementType);
+            mockSet.As&lt;IQueryable&lt;Department&gt;&gt;().Setup(m =&gt; m.GetEnumerator()).Returns(() =&gt; newdata.GetEnumerator());
+            var mockContext = new Mock&lt;AlphaMedicContext&gt;();
+            mockContext.Setup(c =&gt; c.Departments).Returns(mockSet.Object);
+            var service = new DepartmentsController(mockContext.Object);
+            return service;
+        }
+
+
+
+        #region GetDepartmentsTests
+        [TestMethod()]
+        public void GetDepartments_DepartmentsListIsEmpty_CountIsZero_Test()
+        {
+            var expected = 0;
+            var service = GetDepartmentsController();
+            var medications = service.GetDepartments().ToArray();
+            var actual = medications.Length;
+            Assert.AreEqual(expected, actual);
+        }
+
+        [TestMethod()]
+        public void GetDepartments_DepartmentsListWithOneElement_CountIsOne_Test()
+        {
+            var department = new Department
+            {
+                DepartmentId = 1,
+                Description = &quot;this is department description&quot;,
+                Name = &quot;Name of Department&quot;
+            };
+            var expected = 1;
+            var service = GetDepartmentsControllerWithData(new[] { department });
+            var medications = service.GetDepartments().ToArray();
+            var actual = medications.Length;
+            Assert.AreEqual(expected, actual);
+        }
+
+
+
+        [TestMethod()]
+        public void GetDepartments_GettingDepartments_IdIsEqual_Test()
+        {
+            var department = new Department
+            {
+                DepartmentId = 1,
+                Description = &quot;this is department description&quot;,
+                Name = &quot;Name of Department&quot;
+            };
+            var expected = 1;
+            var service = GetDepartmentsControllerWithData(new[] { department });
+            var medications = service.GetDepartments().ToArray();
+            var actual = medications[0].DepartmentId;
+            Assert.AreEqual(expected, actual);
+        }
+
+        [TestMethod()]
+        public void GetDepartments_GettingDepartments_NameIsEqual_Test()
+        {
+            var department = new Department
+            {
+                DepartmentId = 1,
+                Description = &quot;this is department description&quot;,
+                Name = &quot;Name of Department&quot;
+            };
+            var expected = &quot;Name of Department&quot;;
+            var service = GetDepartmentsControllerWithData(new[] { department });
+            var medications = service.GetDepartments().ToArray();
+            var actual = medications[0].Name;
+            Assert.AreEqual(expected, actual);
+        }
+
+        [TestMethod()]
+        public void GetDepartments_GettingDepartments_DescriptionIsEqual_Test()
+        {
+            var department = new Department
+            {
+                DepartmentId = 1,
+                Description = &quot;this is department description&quot;,
+                Name = &quot;Name of Department&quot;
+            };
+            var expected = &quot;this is department description&quot;;
+            var service = GetDepartmentsControllerWithData(new[] { department });
+            var medications = service.GetDepartments().ToArray();
+            var actual = medications[0].Description;
+            Assert.AreEqual(expected, actual);
+        }
+        #endregion
+
+        #region GetDepartmentTests
+
+        [TestMethod]
+        public void GetDepartment_ListIsEmpty_ReturnsNotFound_Test()
+        {
+            var service = GetDepartmentsController();
+            var actionResult = service.GetDepartment(1);
+            Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult));
+        }
+
+        [TestMethod]
+        public void GetDepartment_DepartmentFromCurrentIdIsNotExist_ReturnsNotFound_Test()
+        {
+            var department = new Department
+            {
+                DepartmentId = 1,
+                Description = &quot;this is department description&quot;,
+                Name = &quot;Name of Department&quot;
+            };
+            var service = GetDepartmentsControllerWithData(new[] { department });
+            var actionResult = service.GetDepartment(2);
+            Assert.IsInstanceOfType(actionResult, typeof(NotFoundResult));
+        }
+
+        [TestMethod()]
+        public void GetDepartment_FeedbacksIsNotSet_ReturnsEmptyArray_Test()
+        {
+            var expected = 0;
+            var department = new Department
+            {
+                DepartmentId = 1,
+            };
+            var service = GetDepartmentsControllerWithData(new[] { department });
+            var actionResult = service.GetDepartment(1) as OkNegotiatedContentResult&lt;DepartmentFullDto&gt;;
+            var actual = actionResult.Content.Feedbacks.Length;
+            Assert.AreEqual(expected, actual);
+        }
+
+        [TestMethod]
+        public void GetDepartment_DoctorsIsNotSet_HeadDepartmentIsNull_Test()
+        {
+            var department = new Department
+            {
+                DepartmentId = 1,
+                Description = &quot;this is department description&quot;,
+                Name = &quot;Name of Department&quot;,
+            };
+            var service = GetDepartmentsControllerWithData(new[] { department });
+            var actionResult = service.GetDepartment(1) as OkNegotiatedContentResult&lt;DepartmentFullDto&gt;;
+            Assert.IsNull(actionResult.Content.HeadDepartment);
+        }
+
+        [TestMethod]
+        public void GetDepartment_HeadDepartmentIsNotSet_HeadDepartmentIsNull_Test()
+        {
+            var department = new Department
+            {
+                DepartmentId = 1,
+                Description = &quot;this is department description&quot;,
+                Name = &quot;Name of Department&quot;,
+                Doctors = new[]
+                {
+                    new Doctor
+                    {
+                        UserId = 1,
+                        Name = &quot;Doctor Name&quot;,
+                        Surname = &quot;Doctor Surname&quot;,
+                        EmployeeType = EmployeeType.Doctor,
+                        DoctorType= DoctorType.Doctor
+                    }
+                }
+            };
+            var service = GetDepartmentsControllerWithData(new[] { department });
+            var actionResult = service.GetDepartment(1) as OkNegotiatedContentResult&lt;DepartmentFullDto&gt;;
+            Assert.IsNull(actionResult.Content.HeadDepartment);
+        }
+
+        [TestMethod]
+        public void GetDepartment_FeedBackIsSet_ReturnsOneFeedback_Test()
+        {
+            var department = new Department
+            {
+                DepartmentId = 1,
+                Feedbacks = new[]
+                {
+                    new Feedback
+                    {
+                        FeedbackId=1
+                    }
+                }
+            };
+            var expected = 1;
+            var service = GetDepartmentsControllerWithData(new[] { department });
+            var actionResult = service.GetDepartment(1) as OkNegotiatedContentResult&lt;DepartmentFullDto&gt;;
+            var actual = actionResult.Content.Feedbacks.Length;
+            Assert.AreEqual(expected, actual);
+        }
+
+        [TestMethod]
+        public void GetDepartment_FeedBackIsSet_FeedbackIdIsCorrect_Test()
+        {
+
+            var department = new Department
+            {
+                DepartmentId = 1,
+                Feedbacks = new[]
+                {
+                    new Feedback
+                    {
+                        FeedbackId=1
+                    }
+                }
+            };
+            var expected = 1;
+            var service = GetDepartmentsControllerWithData(new[] { department });
+            var actionResult = service.GetDepartment(1) as OkNegotiatedContentResult&lt;DepartmentFullDto&gt;;
+            var actual = actionResult.Content.Feedbacks[0].FeedbackId;
+            Assert.AreEqual(expected, actual);
+
+        }
+
+        [TestMethod]
+        public void GetDepartment_FeedBackIsSet_FeedbackDateIsCorrect_Test()
+        {
+
+            var department = new Department
+            {
+                DepartmentId = 1,
+                Feedbacks = new[]
+                    {
+                    new Feedback
+                    {
+                        FeedbackId=1,
+                        Date = new DateTime(1488,2,28)
+                    }
+                }
+            };
+            var expected = new DateTime(1488, 2, 28);
+            var service = GetDepartmentsControllerWithData(new[] { department });
+            var actionResult = service.GetDepartment(1) as OkNegotiatedContentResult&lt;DepartmentFullDto&gt;;
+            var actual = actionResult.Content.Feedbacks[0].Date;
+            Assert.AreEqual(expected, actual);
+        }
+
+        [TestMethod]
+        public void GetDepartment_FeedBackIsSet_FeedbackDepartmentIdIsCorrect_Test()
+        {
+            var department = new Department
+            {
+                DepartmentId = 1,
+                Feedbacks = new[]
+                        {
+                    new Feedback
+                    {
+                        FeedbackId=1,
+                        DepartmentId = 2
+                    }
+                }
+            };
+            var expected = 2;
+            var service = GetDepartmentsControllerWithData(new[] { department });
+            var actionResult = service.GetDepartment(1) as OkNegotiatedContentResult&lt;DepartmentFullDto&gt;;
+            var actual = actionResult.Content.Feedbacks[0].DepartmentId;
+            Assert.AreEqual(expected, actual);
+        }
+
+        [TestMethod]
+        public void GetDepartment_FeedBackIsSet_FeedbackDescriptionIsCorrect_Test()
+        {
+            var department = new Department
+            {
+                DepartmentId = 1,
+                Feedbacks = new[]
+                    {
+                    new Feedback
+                    {
+                        FeedbackId=1,
+                        Description = &quot;This is Department Description&quot;
+                    }
+                }
+            };
+            var expected = &quot;This is Department Description&quot;;
+            var service = GetDepartmentsControllerWithData(new[] { department });
+            var actionResult = service.GetDepartment(1) as OkNegotiatedContentResult&lt;DepartmentFullDto&gt;;
+            var actual = actionResult.Content.Feedbacks[0].Description;
+            Assert.AreEqual(expected, actual);
+        }
+
+        [TestMethod]
+        public void GetDepartment_PatientInFeedbackIsNull_PatientFullNameIsAnonymous_Test()
+        {
+            var department = new Department
+            {
+                DepartmentId = 1,
+                Feedbacks = new[]
+                    {
+                    new Feedback
+                    {
+                        FeedbackId=1,
+                        Patient = null
+                    }
+                }
+            };
+            var expected = &quot;Anonymous&quot;;
+            var service = GetDepartmentsControllerWithData(new[] { department });
+            var actionResult = service.GetDepartment(1) as OkNegotiatedContentResult&lt;DepartmentFullDto&gt;;
+            var actual = actionResult.Content.Feedbacks[0].PatientFullName;
+            Assert.AreEqual(expected, actual);
+        }
+
+        [TestMethod]
+        public void GetDepartment_PatientInFeedbackIsІуе_PatientFullNameCorrect_Test()
+        {
+            var department = new Department
+            {
+                DepartmentId = 1,
+                Feedbacks = new[]
+                    {
+                    new Feedback
+                    {
+                        FeedbackId=1,
+                        Patient = new Patient
+                        {
+                            UserId = 1,
+                            Name = &quot;Name&quot;,
+                            Surname = &quot;Surname&quot;
+                        }
+                    }
+                }
+            };
+            var expected = &quot;Name Surname&quot;;
+            var service = GetDepartmentsControllerWithData(new[] { department });
+            var actionResult = service.GetDepartment(1) as OkNegotiatedContentResult&lt;DepartmentFullDto&gt;;
+            var actual = actionResult.Content.Feedbacks[0].PatientFullName;
+            Assert.AreEqual(expected, actual);
+        }
+
+        [TestMethod]
+        public void GetDepartment_HeadDepartmentIsSet_HeadDepartmentUserIdCorrect_Test()
+        {
+            var department = new Department
+            {
+                DepartmentId = 1,
+                Description = &quot;this is department description&quot;,
+                Name = &quot;Name of Department&quot;,
+                Doctors = new[]
+                {
+                    new Doctor
+                    {
+                        UserId = 1,
+                        Name = &quot;Doctor Name&quot;,
+                        Surname = &quot;Doctor Surname&quot;,
+                        EmployeeType = EmployeeType.Doctor,
+                        DoctorType= DoctorType.HeadDepartment
+                    }
+                }
+            };
+            var expected = 1;
+            var service = GetDepartmentsControllerWithData(new[] { department });
+            var actionResult = service.GetDepartment(1) as OkNegotiatedContentResult&lt;DepartmentFullDto&gt;;
+            var actual = actionResult.Content.HeadDepartment.UserId;
+            Assert.AreEqual(expected, actual);
+        }
+
+        [TestMethod]
+        public void GetDepartment_HeadDepartmentIsSet_HeadDepartmentNameCorrect_Test()
+        {
+            var department = new Department
+            {
+                DepartmentId = 1,
+                Description = &quot;this is department description&quot;,
+                Name = &quot;Name of Department&quot;,
+                Doctors = new[]
+                {
+                    new Doctor
+                    {
+                        UserId = 1,
+                        Name = &quot;Doctor Name&quot;,
+                        Surname = &quot;Doctor Surname&quot;,
+                        EmployeeType = EmployeeType.Doctor,
+                        DoctorType= DoctorType.HeadDepartment
+                    }
+                }
+            };
+            var expected = &quot;Doctor Name&quot;;
+            var service = GetDepartmentsControllerWithData(new[] { department });
+            var actionResult = service.GetDepartment(1) as OkNegotiatedContentResult&lt;DepartmentFullDto&gt;;
+            var actual = actionResult.Content.HeadDepartment.Name;
+            Assert.AreEqual(expected, actual);
+        }
+
+        [TestMethod]
+        public void GetDepartment_HeadDepartmentIsSet_HeadDepartmentSurnameCorrect_Test()
+        {
+            var department = new Department
+            {
+                DepartmentId = 1,
+                Description = &quot;this is department description&quot;,
+                Name = &quot;Name of Department&quot;,
+                Doctors = new[]
+                {
+                    new Doctor
+                    {
+                        UserId = 1,
+                        Name = &quot;Doctor Name&quot;,
+                        Surname = &quot;Doctor Surname&quot;,
+                        EmployeeType = EmployeeType.Doctor,
+                        DoctorType= DoctorType.HeadDepartment
+                    }
+                }
+            };
+            var expected = &quot;Doctor Surname&quot;;
+            var service = GetDepartmentsControllerWithData(new[] { department });
+            var actionResult = service.GetDepartment(1) as OkNegotiatedContentResult&lt;DepartmentFullDto&gt;;
+            var actual = actionResult.Content.HeadDepartment.Surname;
+            Assert.AreEqual(expected, actual);
+        }
+
+        //Feedbacks = all == true ? feedbacks.ToArray() : feedbacks.Skip(Math.Max(0, department.Feedbacks.Count - 3)).ToArray(),
+        //        FeedbacksCount = department.Feedbacks.Count,
+
+        [TestMethod]
+        public void GetDepartment_ParamAllIsTrue_ReturnAllFeedbacks_Test()
+        {
+
+            var all = true;
+            var department = new Department
+            {
+                DepartmentId = 1,
+                Feedbacks = new[]
+                    {
+                    new Feedback
+                    {
+                        FeedbackId=1,
+                        Description = &quot;This is Department Description&quot;
+                    },
+                    new Feedback
+                    {
+                        FeedbackId=2,
+                        Description = &quot;This is Department Description&quot;
+                    },
+                    new Feedback
+                    {
+                        FeedbackId=3,
+                        Description = &quot;This is Department Description&quot;
+                    },
+                    new Feedback
+                    {
+                        FeedbackId=4,
+                        Description = &quot;This is Department Description&quot;
+                    },
+                    new Feedback
+                    {
+                        FeedbackId=5,
+                        Description = &quot;This is Department Description&quot;
+                    },
+                }
+            };
+            var expected = 5;
+            var service = GetDepartmentsControllerWithData(new[] { department });
+            var actionResult = service.GetDepartment(1, all) as OkNegotiatedContentResult&lt;DepartmentFullDto&gt;;
+            var actual = actionResult.Content.Feedbacks.Length;
+            Assert.AreEqual(expected, actual);
+        }
+
+        [TestMethod]
+        public void GetDepartment_ParamAllIsFalse_ReturnOnlyLastThreeFeedbacks_Test()
+        {
+
+            var all = false;
+            var department = new Department
+            {
+                DepartmentId = 1,
+                Feedbacks = new[]
+                    {
+                    new Feedback
+                    {
+                        FeedbackId=1,
+                        Description = &quot;This is Department Description&quot;
+                    },
+                    new Feedback
+                    {
+                        FeedbackId=2,
+                        Description = &quot;This is Department Description&quot;
+                    },
+                    new Feedback
+                    {
+                        FeedbackId=3,
+                        Description = &quot;This is Department Description&quot;
+                    },
+                    new Feedback
+                    {
+                        FeedbackId=4,
+                        Description = &quot;This is Department Description&quot;
+                    },
+                    new Feedback
+                    {
+                        FeedbackId=5,
+                        Description = &quot;This is Department Description&quot;
+                    },
+                }
+            };
+            var expected = new[] { 3, 4, 5 };
+            var service = GetDepartmentsControllerWithData(new[] { department });
+            var actionResult = service.GetDepartment(1, all) as OkNegotiatedContentResult&lt;DepartmentFullDto&gt;;
+            var actual = actionResult.Content.Feedbacks.Select(x =&gt; x.FeedbackId).ToArray();
+            Assert.IsTrue(actual.SequenceEqual(expected));
+        }
+
+        [TestMethod]
+        public void GetDepartment_ParamAllIsTrue_CountOfFeedbacksIsCorrect_Test()
+        {
+
+            var all = true;
+            var department = new Department
+            {
+                DepartmentId = 1,
+                Feedbacks = new[]
+                    {
+                    new Feedback
+                    {
+                        FeedbackId=1,
+                        Description = &quot;This is Department Description&quot;
+                    },
+                    new Feedback
+                    {
+                        FeedbackId=2,
+                        Description = &quot;This is Department Description&quot;
+                    },
+                    new Feedback
+                    {
+                        FeedbackId=3,
+                        Description = &quot;This is Department Description&quot;
+                    },
+                    new Feedback
+                    {
+                        FeedbackId=4,
+                        Description = &quot;This is Department Description&quot;
+                    },
+                    new Feedback
+                    {
+                        FeedbackId=5,
+                        Description = &quot;This is Department Description&quot;
+                    },
+                }
+            };
+            var expected = 5;
+            var service = GetDepartmentsControllerWithData(new[] { department });
+            var actionResult = service.GetDepartment(1, all) as OkNegotiatedContentResult&lt;DepartmentFullDto&gt;;
+            var actual = actionResult.Content.FeedbacksCount;
+            Assert.AreEqual(expected, actual);
+        }
+
+        [TestMethod]
+        public void GetDepartment_ParamAllIsFalse_CountOfFeedbacksIsCorrect_Test()
+        {
+
+            var all = false;
+            var department = new Department
+            {
+                DepartmentId = 1,
+                Feedbacks = new[]
+                    {
+                    new Feedback
+                    {
+                        FeedbackId=1,
+                        Description = &quot;This is Department Description&quot;
+                    },
+                    new Feedback
+                    {
+                        FeedbackId=2,
+                        Description = &quot;This is Department Description&quot;
+                    },
+                    new Feedback
+                    {
+                        FeedbackId=3,
+                        Description = &quot;This is Department Description&quot;
+                    },
+                    new Feedback
+                    {
+                        FeedbackId=4,
+                        Description = &quot;This is Department Description&quot;
+                    },
+                    new Feedback
+                    {
+                        FeedbackId=5,
+                        Description = &quot;This is Department Description&quot;
+                    },
+                }
+            };
+            var expected = 5;
+            var service = GetDepartmentsControllerWithData(new[] { department });
+            var actionResult = service.GetDepartment(1, all) as OkNegotiatedContentResult&lt;DepartmentFullDto&gt;;
+            var actual = actionResult.Content.FeedbacksCount;
+            Assert.AreEqual(expected, actual);
+        }
+        #endregion
+
+        #region GetDeparmentDoctors
+        [TestMethod()]
+        public void GetDepartmentDoctors_DoctorsIsNotSet_ReturnsEmptyArray_Test()
+        {
+            var department = new Department
+            {
+                DepartmentId = 1           
+            };
+            var doctors = Enumerable.Empty&lt;Doctor&gt;();
+            var expected = 0;
+            var service = GetDepartmentsControllerWithInstalledDoctors(new[] { department }, doctors);
+            var result = service.GetDepartmentDoctors(1);
+
+            var actual = result.Count();
+            Assert.AreEqual(expected, actual);
+        }
+
+        [TestMethod()]
+        public void GetDepartmentDoctors_DoctorsIsSet_CountOfArrayIsCorrect_Test()
+        {
+            var department = new Department
+            {
+                DepartmentId = 1,
+                Name = &quot;NameOfDepartment&quot;
+
+            };
+            var doctors = new[]
+                          {
+                              new Doctor
+                              {
+                                  UserId = 1,                                  
+                                  DepartmentId=1,
+                                  Department = department,                                  
+                                  Schedule = new Schedule
+                                  {
+                                      StartWorkingTime = new TimeSpan(10,0,0),
+                                      FinishWorkingTime = new TimeSpan(11,0,0)
+                                  }
+                              },
+                              new Doctor
+                              {
+                                  UserId = 2,                                  
+                                  DepartmentId=1,
+                                  Department = department,                                 
+                                  Schedule = new Schedule
+                                  {
+                                      StartWorkingTime = new TimeSpan(10,0,0),
+                                      FinishWorkingTime = new TimeSpan(11,0,0)
+                                  }                                 
+                              },
+                              new Doctor
+                              {
+                                  UserId = 3,                                  
+                                  DepartmentId=1,
+                                  Department = department,
+                                  
+                                  Schedule = new Schedule
+                                  {
+                                      StartWorkingTime = new TimeSpan(10,0,0),
+                                      FinishWorkingTime = new TimeSpan(11,0,0)
+                                  }                                 
+                              }
+                          };
+            var expected = 3;
+            var service = GetDepartmentsControllerWithInstalledDoctors(new[] { department }, doctors);
+            var result = service.GetDepartmentDoctors(1);
+            var actual = result.Count();
+            Assert.AreEqual(expected, actual);
+        }
+
+        [TestMethod()]
+        public void GetDepartmentDoctors_DoctorsIsSet_CountOfArrayIsCorrect2_Test()
+        {
+            var department = new Department
+            {
+                DepartmentId = 1,
+                Name = &quot;NameOfDepartment&quot;
+            };
+            var doctors = new[]
+                          {
+                             new Doctor
+                              {
+                                  UserId = 1,
+                                  Name = &quot;Name&quot;,
+                                  Surname = &quot;Surname&quot;,
+                                  DepartmentId=2,
+                                  Department = department,
+                                  Degree = &quot;Degree&quot;,
+                                  Education = &quot;Eductaion&quot;,
+                                  Schedule = new Schedule
+                                  {
+                                      StartWorkingTime = new TimeSpan(10,0,0),
+                                      FinishWorkingTime = new TimeSpan(11,0,0)
+                                  },
+                                  URLImage = &quot;URLImage&quot;,
+                                  EmployeeType = EmployeeType.Doctor,
+                                  DoctorType = DoctorType.Doctor
+
+                              },
+                              new Doctor
+                              {
+                                  UserId = 2,
+                                  Name = &quot;Name&quot;,
+                                  Surname = &quot;Surname&quot;,
+                                  DepartmentId=1,
+                                  Department = department,
+                                  Degree = &quot;Degree&quot;,
+                                  Education = &quot;Eductaion&quot;,
+                                  Schedule = new Schedule
+                                  {
+                                      StartWorkingTime = new TimeSpan(10,0,0),
+                                      FinishWorkingTime = new TimeSpan(11,0,0)
+                                  },
+                                  URLImage = &quot;URLImage&quot;,
+                                  EmployeeType = EmployeeType.Doctor,
+                                  DoctorType = DoctorType.Doctor
+
+                              },
+                              new Doctor
+                              {
+                                  UserId = 3,
+                                  Name = &quot;Name&quot;,
+                                  Surname = &quot;Surname&quot;,
+                                  DepartmentId=1,
+                                  Department = department,
+                                  Degree = &quot;Degree&quot;,
+                                  Education = &quot;Eductaion&quot;,
+                                  Schedule = new Schedule
+                                  {
+                                      StartWorkingTime = new TimeSpan(10,0,0),
+                                      FinishWorkingTime = new TimeSpan(11,0,0)
+                                  },
+                                  URLImage = &quot;URLImage&quot;,
+                                  EmployeeType = EmployeeType.Doctor,
+                                  DoctorType = DoctorType.Doctor
+
+                              }
+                          };
+            var expected = 2;
+            var service = GetDepartmentsControllerWithInstalledDoctors(new[] { department }, doctors);
+            var result = service.GetDepartmentDoctors(1);
+            var actual = result.Count();
+            Assert.AreEqual(expected, actual);
+        }
+
+        #endregion
+        //[TestMethod()]
+        //public void PutDepartmentTest()
+        //{
+        //    Assert.Fail();
+        //}
+
+        //[TestMethod()]
+        //public void PostDepartmentTest()
+        //{
+        //    Assert.Fail();
+        //}
+
+        //[TestMethod()]
+        //public void PatchDepartmentTest1()
+        //{
+        //    Assert.Fail();
+        //}
+
+        //[TestMethod()]
+        //public void DeleteDepartmentTest()
+        //{
+        //    Assert.Fail();
+        //}
+    }
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[21,9,21,10,1],[22,13,22,56,1],[23,13,23,52,1],[25,13,25,60,1],[26,13,26,56,1],[27,13,27,61,1],[28,13,28,101,1],[29,13,29,105,1],[30,13,30,107,1],[31,13,31,97,1],[31,97,31,119,0],[31,119,31,121,1],[31,13,31,121,1],[33,13,33,97,1],[34,13,34,101,1],[35,13,35,103,1],[36,13,36,93,1],[36,93,36,115,0],[36,115,36,117,1],[36,13,36,117,1],[38,13,38,78,1],[39,13,39,74,1],[40,13,40,73,1],[41,13,41,28,1],[42,9,42,10,1],[48,9,48,10,1],[49,13,49,74,1],[50,13,50,57,1],[51,13,51,61,1],[52,13,52,101,1],[53,13,53,105,1],[54,13,54,107,1],[55,13,55,94,1],[55,94,55,119,0],[55,119,55,121,1],[55,13,55,121,1],[56,13,56,75,1],[57,13,57,73,1],[58,13,58,28,1],[59,9,59,10,1],[62,9,62,10,1],[63,13,63,46,1],[64,13,64,57,1],[65,13,65,99,1],[66,13,66,103,1],[67,13,67,105,1],[68,13,68,94,1],[68,94,68,117,0],[68,117,68,119,1],[68,13,68,119,1],[69,13,69,61,1],[70,13,70,75,1],[71,13,71,73,1],[72,13,72,28,1],[73,9,73,10,1],[80,9,80,10,1],[81,13,81,30,1],[82,13,82,54,1],[83,13,83,66,1],[84,13,84,45,1],[85,13,85,47,1],[86,9,86,10,1],[90,9,90,10,1],[91,13,96,15,1],[97,13,97,30,1],[98,13,98,82,1],[99,13,99,66,1],[100,13,100,45,1],[101,13,101,47,1],[102,9,102,10,1],[108,9,108,10,1],[109,13,114,15,1],[115,13,115,30,1],[116,13,116,82,1],[117,13,117,66,1],[118,13,118,54,1],[119,13,119,47,1],[120,9,120,10,1],[124,9,124,10,1],[125,13,130,15,1],[131,13,131,49,1],[132,13,132,82,1],[133,13,133,66,1],[134,13,134,46,1],[135,13,135,47,1],[136,9,136,10,1],[140,9,140,10,1],[141,13,146,15,1],[147,13,147,61,1],[148,13,148,82,1],[149,13,149,66,1],[150,13,150,53,1],[151,13,151,47,1],[152,9,152,10,1],[159,9,159,10,1],[160,13,160,54,1],[161,13,161,57,1],[162,13,162,75,1],[163,9,163,10,1],[167,9,167,10,1],[168,13,173,15,1],[174,13,174,82,1],[175,13,175,57,1],[176,13,176,75,1],[177,9,177,10,1],[181,9,181,10,1],[182,13,182,30,1],[183,13,186,15,1],[187,13,187,82,1],[188,13,188,105,1],[189,13,189,64,1],[190,13,190,47,1],[191,9,191,10,1],[195,9,195,10,1],[196,13,201,15,1],[202,13,202,82,1],[203,13,203,105,1],[204,13,204,64,1],[205,9,205,10,1],[209,9,209,10,1],[210,13,226,15,1],[227,13,227,82,1],[228,13,228,105,1],[229,13,229,64,1],[230,9,230,10,1],[234,9,234,10,1],[235,13,245,15,1],[246,13,246,30,1],[247,13,247,82,1],[248,13,248,105,1],[249,13,249,64,1],[250,13,250,47,1],[251,9,251,10,1],[255,9,255,10,1],[257,13,267,15,1],[268,13,268,30,1],[269,13,269,82,1],[270,13,270,105,1],[271,13,271,71,1],[272,13,272,47,1],[274,9,274,10,1],[278,9,278,10,1],[280,13,291,15,1],[292,13,292,54,1],[293,13,293,82,1],[294,13,294,105,1],[295,13,295,65,1],[296,13,296,47,1],[297,9,297,10,1],[301,9,301,10,1],[302,13,313,15,1],[314,13,314,30,1],[315,13,315,82,1],[316,13,316,105,1],[317,13,317,73,1],[318,13,318,47,1],[319,9,319,10,1],[323,9,323,10,1],[324,13,335,15,1],[336,13,336,61,1],[337,13,337,82,1],[338,13,338,105,1],[339,13,339,72,1],[340,13,340,47,1],[341,9,341,10,1],[345,9,345,10,1],[346,13,357,15,1],[358,13,358,40,1],[359,13,359,82,1],[360,13,360,105,1],[361,13,361,76,1],[362,13,362,47,1],[363,9,363,10,1],[367,9,367,10,1],[368,13,384,15,1],[385,13,385,43,1],[386,13,386,82,1],[387,13,387,105,1],[388,13,388,76,1],[389,13,389,47,1],[390,9,390,10,1],[394,9,394,10,1],[395,13,411,15,1],[412,13,412,30,1],[413,13,413,82,1],[414,13,414,105,1],[415,13,415,69,1],[416,13,416,47,1],[417,9,417,10,1],[421,9,421,10,1],[422,13,438,15,1],[439,13,439,42,1],[440,13,440,82,1],[441,13,441,105,1],[442,13,442,67,1],[443,13,443,47,1],[444,9,444,10,1],[448,9,448,10,1],[449,13,465,15,1],[466,13,466,45,1],[467,13,467,82,1],[468,13,468,105,1],[469,13,469,70,1],[470,13,470,47,1],[471,9,471,10,1],[478,9,478,10,1],[480,13,480,28,1],[481,13,512,15,1],[513,13,513,30,1],[514,13,514,82,1],[515,13,515,110,1],[516,13,516,64,1],[517,13,517,47,1],[518,9,518,10,1],[522,9,522,10,1],[524,13,524,29,1],[525,13,556,15,1],[557,13,557,46,1],[558,13,558,82,1],[559,13,559,110,1],[560,13,560,69,1],[560,69,560,81,1],[560,81,560,93,1],[560,13,560,93,1],[561,13,561,59,1],[562,9,562,10,1],[566,9,566,10,1],[568,13,568,28,1],[569,13,600,15,1],[601,13,601,30,1],[602,13,602,82,1],[603,13,603,110,1],[604,13,604,62,1],[605,13,605,47,1],[606,9,606,10,1],[610,9,610,10,1],[612,13,612,29,1],[613,13,644,15,1],[645,13,645,30,1],[646,13,646,82,1],[647,13,647,110,1],[648,13,648,62,1],[649,13,649,47,1],[650,9,650,10,1],[656,9,656,10,1],[657,13,660,15,1],[661,13,661,54,1],[662,13,662,30,1],[663,13,663,103,1],[664,13,664,58,1],[666,13,666,41,1],[667,13,667,47,1],[668,9,668,10,1],[672,9,672,10,1],[673,13,678,15,1],[679,13,715,29,1],[716,13,716,30,1],[717,13,717,103,1],[718,13,718,58,1],[719,13,719,41,1],[720,13,720,47,1],[721,9,721,10,1],[725,9,725,10,1],[726,13,730,15,1],[731,13,790,29,1],[791,13,791,30,1],[792,13,792,103,1],[793,13,793,58,1],[794,13,794,41,1],[795,13,795,47,1],[796,9,796,10,1]]);
+    </script>
+  </body>
+</html>

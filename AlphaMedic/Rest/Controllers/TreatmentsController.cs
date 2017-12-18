@@ -30,7 +30,7 @@ namespace Rest.Controllers
         // GET: api/Treatments/5
         [ResponseType(typeof(TreatmentDto))]
         [Route("{id:int}")]
-        [Authorize(Roles = Roles.Receptionist+","+Roles.AllDoctors+","+Roles.Patinet)]
+        [Authorize(Roles = Roles.Receptionist+","+Roles.AllDoctors+","+Roles.Patient)]
         public IHttpActionResult GetTreatment(int id)
         {
             Treatment treatment = db.Treatments.Include(x=>x.Medications).Where(c=>c.ProcedureId==id).FirstOrDefault();
@@ -68,7 +68,7 @@ namespace Rest.Controllers
         // PUT: api/Treatments/5
         [ResponseType(typeof(void))]
         [Route("{id:int}")]
-        [Authorize(Roles = Roles.Receptionist)]
+        [Authorize(Roles = Roles.Receptionist+","+Roles.AllDoctors)]
         public IHttpActionResult PutTreatment(int id, Treatment treatment)
         {
             if (!ModelState.IsValid)
@@ -122,14 +122,14 @@ namespace Rest.Controllers
         // POST: api/Treatments
         [ResponseType(typeof(Treatment))]
         [Route("")]
-        [Authorize(Roles=Roles.Receptionist)]
+        [Authorize(Roles=Roles.Receptionist+","+Roles.AllDoctors)]
         public IHttpActionResult PostTreatment(Treatment treatment)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
-
+            
             //check if procedure already set
             if (db.Procedures.FirstOrDefault(x => x.ProcedureId == treatment.ProcedureId) != null)
                 return Content(HttpStatusCode.Conflict, "Procedure existed!");
@@ -139,6 +139,7 @@ namespace Rest.Controllers
             try
             {
                 db.SaveChanges();
+                
             }
             catch (DbUpdateException)
             {
@@ -152,7 +153,7 @@ namespace Rest.Controllers
                 }
             }
 
-            return CreatedAtRoute("DefaultApi", new { id = treatment.ProcedureId }, treatment);
+            return Ok(treatment);
         }
         /*
         // DELETE: api/Treatments/5

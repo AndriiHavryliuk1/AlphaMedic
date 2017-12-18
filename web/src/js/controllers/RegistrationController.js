@@ -6,7 +6,7 @@ app.controller('RegistrationController', function(URL_FOR_REST, USER_ROLES, sha2
 
     $scope.submit = function() {
         $scope.loading = true;
-        $scope.patient.Active = false;
+        $scope.patient.Active = true;
         $scope.patient.Password = sha256.convertToSHA256($scope.patient.Password);
         $http.post(URL_FOR_REST.url + "api/Patients", $scope.patient, {
                 headers: {

@@ -1,7 +1,10 @@
 var app = angular.module('alphaMedicApp');
 
 app.controller('ReceptionistCabinetController', function(URL_FOR_REST, $window, $rootScope, $filter, PagginationService, PaginationArrayService, $scope, $http, $location, $routeParams, jwtHelper, ChangeUserInfoService, fileUploadService) {
-
+  $scope.ChangePass = {
+      OldPass: null,
+      NewPass: null
+  };
     $rootScope.pagingInfo = {
         page: $location.search().page == undefined ? 1 : $location.search().page,
         itemsPerPage: 7,
@@ -31,6 +34,7 @@ app.controller('ReceptionistCabinetController', function(URL_FOR_REST, $window, 
                 Phone: $scope.recept.Phone,
                 Address: $scope.recept.Address
             }
+            $scope.bufferUser=angular.copy($scope.recept);
         })
 
     $http.get(URL_FOR_REST.url + "api/Departments")
@@ -107,7 +111,7 @@ app.controller('ReceptionistCabinetController', function(URL_FOR_REST, $window, 
     };
 
     $scope.ChangePassword = function() {
-        ChangeUserInfoService.ChangePassword($scope.ChangePass, jwtHelper.decodeToken(localStorage.getItem('token')).id);
+        ChangeUserInfoService.ChangePassword($scope.ChangePass, jwtHelper.decodeToken(localStorage.getItem('token')).id,$scope);
     }
 
     $scope.checkClear = '';
@@ -125,6 +129,6 @@ app.controller('ReceptionistCabinetController', function(URL_FOR_REST, $window, 
                 $scope.user.URLImage = response.data;
             });
         }
-        ChangeUserInfoService.ChangeUser($scope.recept, $scope.user, jwtHelper.decodeToken(localStorage.getItem('token')).id);
+        ChangeUserInfoService.ChangeUser($scope.recept, $scope.bufferUser, jwtHelper.decodeToken(localStorage.getItem('token')).id,$scope);
     }
 });

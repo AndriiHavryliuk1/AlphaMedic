@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>H:\AlphaMedic\AlphaMedic\Rest\Controllers\EmployeesController.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Web.Http;
+using System.Web.Http.Description;
+using Rest.Models;
+using Rest.Models.AlphaMedicContext;
+using System.Web.Routing;
+using System.Data.Entity.Validation;
+using Rest.Dtos;
+
+namespace Rest.Controllers
+{
+    [RoutePrefix(&quot;api/employees&quot;)]
+    public class EmployeesController : ApiController
+    {
+        private AlphaMedicContext db = new AlphaMedicContext();
+
+        // GET: api/Employees
+        [Route(&quot;&quot;)]
+        [Authorize(Roles = Roles.Administrator)]
+        public IHttpActionResult GetEmployees()
+        {
+            var res = db.Employees.Select(x =&gt; new
+            {
+                x.UserId,
+                x.Name,
+                x.Surname,
+                x.DateOfBirth,
+                x.Phone,
+                x.Email,
+                x.Address,
+                x.EmploymentRecordBookNumber,
+                EmployeeType = x.EmployeeType.ToString(),
+                x.Active
+            });
+
+            return Ok(res);
+        }
+
+        // GET: api/Employees/5
+        [Route(&quot;{id:int}&quot;)]
+        [Authorize(Roles=Roles.Administrator)]
+        public IHttpActionResult GetEmployee(int id)
+        {
+            var employee = db.Employees.FirstOrDefault(x =&gt; x.UserId == id);
+            if (employee == null)
+            {
+                return NotFound();
+            }
+
+            var res = new
+            {
+                employee.UserId,
+                employee.Name,
+                employee.Surname,
+                employee.EmployeeType,
+                employee.Active,
+                URLImage = Constants.ThisServer + employee.URLImage
+            };
+
+            return Ok(res);
+        }
+
+
+
+        // PUT: api/Employees/5
+        [Route(&quot;{id:int}&quot;)]
+        [Authorize(Roles = Roles.Administrator)]
+        [ResponseType(typeof(void))]
+        public IHttpActionResult PutEmployee(int id, EmployeeDto employeeDto)
+       {
+           
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+             if (id != employeeDto.UserId)
+            {
+                return BadRequest();
+            }
+         
+            var emp=db.Employees.Find(employeeDto.UserId);
+
+            var elm = db.Users.FirstOrDefault(x =&gt; x.Email == employeeDto.Email);
+            if (elm != null &amp;&amp; elm.UserId != id)
+            {
+                return BadRequest(&quot;Email is allready exists&quot;);
+            }
+
+            employeeDto.UpateEmployee(emp);
+
+            db.Entry(emp).State = EntityState.Modified;
+
+            try
+            {
+                db.SaveChanges();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                return InternalServerError();
+            }
+            catch(Exception)
+            {
+                return InternalServerError();
+            }
+
+            return Ok();
+        }
+
+
+        // POST: api/Employees
+        [Authorize(Roles = Roles.Administrator)]
+        [Route(&quot;administrators&quot;)]
+        [ResponseType(typeof(Administrator))]
+        public IHttpActionResult PostAdministrator(Administrator employee)
+        {
+            if (!ModelState.IsValid || (db.Users.FirstOrDefault(x =&gt; x.Email == employee.Email) != null))
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                FillEmploye(employee);
+
+                db.Users.Add(employee);
+
+                db.SaveChanges();
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return InternalServerError(ex);
+            }
+        }
+        
+        // POST: api/Employees
+        [Authorize(Roles =Roles.Administrator)]
+        [Route(&quot;receptionists&quot;)]      
+        [ResponseType(typeof(Receptionist))]
+        public IHttpActionResult PostReceptionist(Receptionist employee)
+        {
+            if (!ModelState.IsValid|| (db.Users.FirstOrDefault(x =&gt; x.Email == employee.Email) != null))
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                FillEmploye(employee);
+
+                db.Users.Add(employee);
+
+                db.SaveChanges();
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return InternalServerError(ex);
+            }            
+        }
+
+       
+        private void FillEmploye(Employee employee)
+        {
+            employee.UserClaim = db.UserClaims.FirstOrDefault(x =&gt; x.ClaimValue == employee.EmployeeType.ToString());
+            employee.EmploymentDate = DateTime.Now;
+            employee.URLImage = Constants.DefaultDoctorImage;
+        }
+
+    /*    // DELETE: api/Employees/5
+        [ResponseType(typeof(Employee))]
+        public IHttpActionResult DeleteEmployee(int id)
+        {
+            Employee employee = db.Employees.Find(id);
+            if (employee == null)
+            {
+                return NotFound();
+            }
+
+            db.Users.Remove(employee);
+            db.SaveChanges();
+
+            return Ok(employee);
+        }
+        */
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                db.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        private bool EmployeeExists(int id)
+        {
+            return db.Users.Count(e =&gt; e.UserId == id) &gt; 0;
+        }
+    }
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[22,9,22,64,0],[28,9,28,10,0],[29,13,41,16,0],[43,13,43,28,0],[44,9,44,10,0],[50,9,50,10,0],[51,13,51,77,0],[52,13,52,34,0],[53,13,53,14,0],[54,17,54,35,0],[57,13,65,15,0],[67,13,67,28,0],[68,9,68,10,0],[77,8,77,9,0],[79,13,79,37,0],[80,13,80,14,0],[81,17,81,47,0],[84,14,84,43,0],[85,13,85,14,0],[86,17,86,37,0],[89,13,89,59,0],[91,13,91,82,0],[92,13,92,49,0],[93,13,93,14,0],[94,17,94,63,0],[97,13,97,44,0],[99,13,99,56,0],[102,13,102,14,0],[103,17,103,34,0],[104,13,104,14,0],[105,13,105,49,0],[106,13,106,14,0],[107,17,107,46,0],[109,13,109,29,0],[110,13,110,14,0],[111,17,111,46,0],[114,13,114,25,0],[115,9,115,10,0],[123,9,123,10,0],[124,13,124,106,0],[125,13,125,14,0],[126,17,126,47,0],[130,13,130,14,0],[131,17,131,39,0],[133,17,133,40,0],[135,17,135,34,0],[136,17,136,29,0],[138,13,138,33,0],[139,13,139,14,0],[140,17,140,48,0],[142,9,142,10,0],[149,9,149,10,0],[150,13,150,105,0],[151,13,151,14,0],[152,17,152,47,0],[156,13,156,14,0],[157,17,157,39,0],[159,17,159,40,0],[161,17,161,34,0],[163,17,163,29,0],[165,13,165,33,0],[166,13,166,14,0],[167,17,167,48,0],[169,9,169,10,0],[173,9,173,10,0],[174,13,174,118,0],[175,13,175,52,0],[176,13,176,62,0],[177,9,177,10,0],[196,9,196,10,0],[197,13,197,27,0],[198,13,198,14,0],[199,17,199,30,0],[200,13,200,14,0],[201,13,201,37,0],[202,9,202,10,0],[205,9,205,10,0],[206,13,206,60,0],[207,9,207,10,0]]);
+    </script>
+  </body>
+</html>

@@ -19,7 +19,7 @@
                 <div class="col-md-3">
                     <label>Choose department:</label>
 
-                    <select class="form-control" autofocus ng-model="pagingInfo.department" >
+                    <select class="form-control"  ng-model="pagingInfo.department" >
                         <option value="">All</option>
                         <option ng-repeat="department in departments | orderBy:Name" value="{{department.DepartmentId}}">{{department.Name}}</option>
                     </select>
@@ -128,7 +128,7 @@
                                 Date Time:
                             </dt>
                             <dd class="topMargin">
-                                {{apo.Date | date:'yyyy-MM-dd hh:mm'}}
+                                {{apo.Date | date:'yyyy-MM-dd HH:mm'}}
                             </dd>
                         </dl>
                     </div>

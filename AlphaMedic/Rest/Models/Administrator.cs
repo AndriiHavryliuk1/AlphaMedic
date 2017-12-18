@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Web;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Rest.Models
 {
-    [Table("Administrators")]
-    public class Administrator : Employee
-    {
-        
-    }
+	[Table("Administrators")]
+	public class Administrator : Employee
+	{
+
+	}
 }

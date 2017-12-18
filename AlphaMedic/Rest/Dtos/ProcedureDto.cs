@@ -13,6 +13,7 @@ namespace Rest.Dtos
         public decimal? Price { get; set; }
         public ShortUserDto Doctor { get; set; }
         public virtual string Type { get; set; }
+        public AppointmentState State { get; set; }
 
     }
 
@@ -22,7 +23,7 @@ namespace Rest.Dtos
         public override string Type { get { return "Examination"; } } 
     }
 
-    public class VaccionationDto : ProcedureDto
+    public class VaccinationDto : ProcedureDto
     {
         public override string Type { get { return "Vaccination"; } }
     }

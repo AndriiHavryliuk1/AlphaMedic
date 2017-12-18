@@ -108,6 +108,12 @@ margin-top: -20px;
 .errorPage{
   background-image: url("../img/morgue-error.jpg");
 }
+.dateInput
+{
+   background-color:white !important;
+}
+
+
 
 html, body {height: 100%;}
 
@@ -120,3 +126,12 @@ html, body {height: 100%;}
 	margin-top: -50px;
 	height: 50px;
 	clear:both;}
+
+  #forgotPassLink
+  {
+    color: #1E7EC8;
+   text-decoration: none;
+  }
+  #forgotPassLink:hover {
+   text-decoration: underline; 
+}

@@ -9,7 +9,7 @@
                     <div class="col-sm-9">
                         <select class="form-control" id="procedureSelect" ng-model="Type">
                             <option>Examination</option>
-                            <option>Treatment  </option>
+                            <option>Treatment</option>
                             <option>Vaccination</option>
                         </select>
                     </div>
@@ -18,14 +18,14 @@
                 <div class="form-group">
                     <label for="name" class="col-sm-3 control-label">Name*</label>
                     <div class="col-sm-9">
-                        <input type="text" required placeholder="Name" ng-model="procedure.Name" class="form-control" autofocus>
+                        <input type="text" required placeholder="Name" ng-model="procedure.Name" class="form-control" >
                     </div>
                 </div>
                 <br>
                 <div class="form-group">
                     <label for="description" class="col-sm-3 control-label">Description*</label>
                     <div class="col-sm-9">
-                        <textarea class="form-control" required rows="5" ng-model="procedure.Description" id="description" placeholder="Enter description of procedure..."></textarea>
+                        <textarea style="resize:none;" class="form-control" required rows="5" ng-model="procedure.Description" id="description" placeholder="Enter description of procedure..."></textarea>
                     </div>
                 </div>
                 <br>

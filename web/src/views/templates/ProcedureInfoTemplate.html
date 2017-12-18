@@ -51,7 +51,7 @@
                 <div class="form-group" ng-show="showResult">
                     <label class="control-label col-sm-4">Result:</label>
                     <div class="col-sm-8">
-                        <label class="control-label">
+                        <label>
                             {{procedure.Result}}
                         </label>
                     </div>
@@ -59,8 +59,8 @@
                 <div class="form-group" ng-show="ShowMedications">
                     <label class="control-label col-sm-4">Medications:</label>
                     <div class="col-sm-8">
-                        <ul class="control-label">
-                            <li ng-repeat="med in procedure.Medications">{{med.Description}}</li>
+                        <ul>
+                            <li ng-repeat="med in procedure.Medications" style= "text-align: left;">{{med.Description}}</li>
                         </ul>
                     </div>
                 </div>

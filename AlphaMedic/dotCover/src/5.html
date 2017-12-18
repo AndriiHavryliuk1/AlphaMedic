@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>H:\AlphaMedic\AlphaMedic\RestTests\Controllers\PatientsControllerTests.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using Rest.Controllers;
+using Rest.Dtos;
+using Rest.Models;
+using Rest.Models.AlphaMedicContext;
+using RestTests.ModelsMock;
+using System;
+using System.Collections.Generic;
+using System.Data.Entity;
+using System.Linq;
+using System.Net;
+using System.Security.Claims;
+using System.Security.Principal;
+using System.Text;
+using System.Threading.Tasks;
+using System.Web;
+using System.Web.Http.Results;
+using System.Web.Mvc;
+using System.Web.Routing;
+
+namespace Rest.Controllers.Tests
+{
+    [TestClass()]
+    public class PatientsControllerTests
+    {
+
+
+
+
+        #region factory
+
+        private static PatientsController GetPatientsControllerForGetPatientsMethod(
+            IEnumerable&lt;User&gt; dbUsers = null,
+            IEnumerable&lt;Doctor&gt; dbDoctors = null,
+            IEnumerable&lt;Patient&gt; dbPatients = null,
+            IEnumerable&lt;Appointment&gt; dbAppointments = null,
+            string identityRole = &quot;&quot;
+            )
+        {
+
+            var mockContext = new Mock&lt;AlphaMedicContext&gt;();
+
+            if (dbUsers != null)
+            {
+                var mockSet = new Mock&lt;DbSet&lt;User&gt;&gt;();
+                mockSet.As&lt;IQueryable&lt;User&gt;&gt;().Setup(m =&gt; m.Provider).Returns(dbUsers.AsQueryable().Provider);
+                mockSet.As&lt;IQueryable&lt;User&gt;&gt;().Setup(m =&gt; m.Expression).Returns(dbUsers.AsQueryable().Expression);
+                mockSet.As&lt;IQueryable&lt;User&gt;&gt;().Setup(m =&gt; m.ElementType).Returns(dbUsers.AsQueryable().ElementType);
+                mockSet.As&lt;IQueryable&lt;User&gt;&gt;().Setup(m =&gt; m.GetEnumerator()).Returns(() =&gt; dbUsers.AsQueryable().GetEnumerator());
+                mockContext.Setup(c =&gt; c.Users).Returns(mockSet.Object);
+            }
+
+            if (dbPatients != null)
+            {
+                var mockSet = new Mock&lt;DbSet&lt;Patient&gt;&gt;();
+                mockSet.As&lt;IQueryable&lt;Patient&gt;&gt;().Setup(m =&gt; m.Provider).Returns(dbPatients.AsQueryable().Provider);
+                mockSet.As&lt;IQueryable&lt;Patient&gt;&gt;().Setup(m =&gt; m.Expression).Returns(dbPatients.AsQueryable().Expression);
+                mockSet.As&lt;IQueryable&lt;Patient&gt;&gt;().Setup(m =&gt; m.ElementType).Returns(dbPatients.AsQueryable().ElementType);
+                mockSet.As&lt;IQueryable&lt;Patient&gt;&gt;().Setup(m =&gt; m.GetEnumerator()).Returns(() =&gt; dbPatients.AsQueryable().GetEnumerator());
+                mockSet.Setup(m =&gt; m.Include(&quot;Appointments&quot;)).Returns(mockSet.Object);
+                mockContext.Setup(c =&gt; c.Patients).Returns(mockSet.Object);
+
+            }
+
+            if (dbDoctors != null)
+            {
+                var mockSet = new Mock&lt;DbSet&lt;Doctor&gt;&gt;();
+                mockSet.As&lt;IQueryable&lt;Doctor&gt;&gt;().Setup(m =&gt; m.Provider).Returns(dbDoctors.AsQueryable().Provider);
+                mockSet.As&lt;IQueryable&lt;Doctor&gt;&gt;().Setup(m =&gt; m.Expression).Returns(dbDoctors.AsQueryable().Expression);
+                mockSet.As&lt;IQueryable&lt;Doctor&gt;&gt;().Setup(m =&gt; m.ElementType).Returns(dbDoctors.AsQueryable().ElementType);
+                mockSet.As&lt;IQueryable&lt;Doctor&gt;&gt;().Setup(m =&gt; m.GetEnumerator()).Returns(() =&gt; dbDoctors.AsQueryable().GetEnumerator());
+                mockContext.Setup(c =&gt; c.Doctors).Returns(mockSet.Object);
+            }
+
+            if (dbAppointments != null)
+            {
+                var mockSet = new Mock&lt;DbSet&lt;Appointment&gt;&gt;();
+                mockSet.As&lt;IQueryable&lt;Appointment&gt;&gt;().Setup(m =&gt; m.Provider).Returns(dbAppointments.AsQueryable().Provider);
+                mockSet.As&lt;IQueryable&lt;Appointment&gt;&gt;().Setup(m =&gt; m.Expression).Returns(dbAppointments.AsQueryable().Expression);
+                mockSet.As&lt;IQueryable&lt;Appointment&gt;&gt;().Setup(m =&gt; m.ElementType).Returns(dbAppointments.AsQueryable().ElementType);
+                mockSet.As&lt;IQueryable&lt;Appointment&gt;&gt;().Setup(m =&gt; m.GetEnumerator()).Returns(() =&gt; dbAppointments.AsQueryable().GetEnumerator());
+
+
+                //mockContext.Setup(m =&gt; m.Include(&quot;Appointments&quot;)).Returns(mockPersonSet.Object);
+            }
+            var service = new PatientsController(mockContext.Object);
+            service.User = new GenericPrincipal(
+                new GenericIdentity(
+                    &quot;example@gmail.com&quot;,
+                    &quot;Passport&quot;), new[] { identityRole });
+
+            return service;
+        }
+
+
+
+        #endregion
+        /*
+        public int? MedicalHistoryId { get; set; }
+        public int? BloodGroupId { get; set; }
+
+
+        public virtual MedicalHistory MedicalHistory { get; set; }
+        public virtual BloodGroup BloodGroup { get; set; }
+        public virtual ICollection&lt;Appointment&gt; Appointments { get; private set; }
+        public virtual ICollection&lt;Feedback&gt; Feedbacks { get; private set; }
+        */
+
+
+
+
+        //[Route(&quot;&quot;)]
+        //[Authorize(Roles = Roles.Administrator + &quot;,&quot; + Roles.AllDoctors + &quot;,&quot; + Roles.Receptionist)]
+        //public IHttpActionResult GetPatients(int page = 1, int itemsPerPage = 15,
+        //    string sortBy = &quot;UserId&quot;, bool reverse = false,
+        //    string search = null, int? doctor = null,
+        //    int? department = null)
+        //{
+        //    try
+        //    {
+        //        var currentUser = db.Users.FirstOrDefault(x =&gt; x.Email == this.User.Identity.Name);
+        //        var maybeDoctor = db.Doctors.FirstOrDefault(x =&gt; x.UserId == currentUser.UserId);
+
+        //        if (maybeDoctor != null)
+        //        {
+        //            if (Tools.AnyRole(this.User, Roles.DoctorRoles)
+        //                &amp;&amp; maybeDoctor.DoctorType != DoctorType.HospitalDean &amp;&amp;
+        //                  (maybeDoctor.DoctorType == DoctorType.HeadDepartment &amp;&amp; maybeDoctor.DepartmentId != department)
+        //                &amp;&amp; (doctor != currentUser.UserId || doctor == null))
+        //            {
+        //                return Content(HttpStatusCode.Forbidden, Messages.AccsesDenied);
+        //            }
+        //        }
+        //    }
+        //    catch (ArgumentNullException)
+        //    {
+        //        return InternalServerError();
+        //    }
+
+        //    var users = db.Patients.Include(c =&gt; c.Appointments).
+        //    Select(x =&gt; new
+        //    {
+        //        x.UserId,
+        //        x.Name,
+        //        x.Surname,
+        //        URLImage = Constants.ThisServer + x.URLImage,
+
+        //        Procedure = x.Appointments.Select(
+        //        p =&gt; new
+        //        {
+        //            ProcedureId = p.AppointmentId,
+        //            ProcedureName = p.Procedure.Name ?? string.Empty,
+        //            Doctor = (p.Doctor != null ?
+        //            new
+        //            {
+        //                DoctorFullName = p.Doctor.Name + &quot; &quot; + p.Doctor.Surname,
+        //                DoctorId = p.Doctor.UserId,
+        //                DepartmentId = p.Doctor.DepartmentId
+        //            }
+        //            : null)
+        //        }
+        //        ).FirstOrDefault()
+        //    }
+        //    ).AsQueryable();
+
+        //    if (department != null)
+        //    {
+        //        users = users.Where(x =&gt; x.Procedure.Doctor.DepartmentId == department);
+        //    }
+
+        //    if (doctor != null)
+        //    {
+        //        users = users.Where(x =&gt; x.Procedure.Doctor.DoctorId == doctor);
+        //    }
+
+        //    // searching
+        //    if (!string.IsNullOrWhiteSpace(search))
+        //    {
+        //        search = search.ToLower();
+        //        users = users.Where(x =&gt;
+        //            (x.Name + x.Surname).ToLower().Contains(search.Replace(&quot; &quot;, &quot;&quot;)) ||
+        //            (x.Surname + x.Name).ToLower().Contains(search.Replace(&quot; &quot;, &quot;&quot;)));
+        //    }
+
+        //    // sorting (done with the System.Linq.Dynamic library available on NuGet)
+        //    users = users.OrderBy(sortBy + (reverse ? &quot;descending&quot; : &quot;&quot;));
+
+        //    // paging
+        //    var usersPaged = users.Skip((page - 1) * itemsPerPage).Take(itemsPerPage);
+
+        //    // json result
+        //    var json = new
+        //    {
+        //        count = users.Count(),
+        //        data = usersPaged
+        //    };
+
+        //    return Ok(json);
+
+        //}
+
+        //var fakeHttpContext = new Mock&lt;HttpContextBase&gt;();
+        //var fakeIdentity = new GenericIdentity(&quot;User&quot;);
+        //var principal = new GenericPrincipal(fakeIdentity, null);
+
+        //fakeHttpContext.Setup(t =&gt; t.User).Returns(principal);
+        //var controllerContext = new Mock&lt;ControllerContext&gt;();
+        //controllerContext.Setup(t =&gt; t.HttpContext).Returns(fakeHttpContext.Object);
+
+        //_requestController = new RequestController();
+
+        ////Set your controller ControllerContext with fake context
+        //_requestController.ControllerContext = controllerContext.Object; 
+
+
+
+        [TestMethod]
+        public void GetPatients_DBUsersNotSet_ThrowsArgumentNullExceptionAndSendServerInternalError_Test()
+        {
+            var service = GetPatientsControllerForGetPatientsMethod();
+            var actionResult = service.GetPatients();
+            Assert.IsTrue(actionResult is InternalServerErrorResult);
+        }
+
+        [TestMethod]
+        public void GetPatients_DBUsersIsEmpty_ThrowsArgumentNullExceptionAndSendServerInternalError_Test()
+        {
+            var service = GetPatientsControllerForGetPatientsMethod(
+                dbUsers: Enumerable.Empty&lt;User&gt;()
+                );
+            var actionResult = service.GetPatients();
+            Assert.IsTrue(actionResult is InternalServerErrorResult);
+        }
+
+        [TestMethod]
+        public void GetPatients_CurrentUserIsNotFound_ThrowsArgumentNullExceptionAndSendServerInternalError_Test()
+        {
+            var service = GetPatientsControllerForGetPatientsMethod(
+                dbUsers: new[]
+                {
+                    new UserMock()
+                    {
+                        UserId = 1,
+                        Email = &quot;example2@gmail.com&quot;
+                    }
+                }
+                );
+            var actionResult = service.GetPatients();
+            Assert.IsTrue(actionResult is InternalServerErrorResult);
+        }
+
+        [TestMethod]
+        public void GetPatients_DBDoctorsIsNotSet_ThrowsArgumentNullExceptionAndSendServerInternalError_Test()
+        {
+            var service = GetPatientsControllerForGetPatientsMethod(
+                dbUsers: new[]
+                {
+                    new UserMock()
+                    {
+                        UserId = 1,
+                        Email = &quot;example@gmail.com&quot;
+                    }
+                }
+                );
+            var actionResult = service.GetPatients();
+            Assert.IsTrue(actionResult is InternalServerErrorResult);
+        }
+
+        [TestMethod]
+        public void GetPatients_DoctorIsExistButHaventDoctorType_ReturnAccessDeniedAndStatusCodeIsCorrect_Test()
+        {
+
+            var expected = HttpStatusCode.Forbidden;
+            var service = GetPatientsControllerForGetPatientsMethod(
+                dbUsers: new[]
+                {
+                    new UserMock()
+                    {
+                        UserId = 1,
+                        Email = &quot;example@gmail.com&quot;
+                    }
+                },
+                dbDoctors: new[]
+                {
+                    new Doctor()
+                    {
+                        UserId = 1,
+                    }
+                }
+                );
+            var actionResult = service.GetPatients() as NegotiatedContentResult&lt;string&gt;;
+            var actual = actionResult.StatusCode;
+            Assert.AreEqual(expected, actual);
+        }
+
+        [TestMethod]
+        public void GetPatients_DoctorIsExistButHaventDoctorType_ReturnAccessDeniedAndMessageIsCorrect_Test()
+        {
+
+            var expected = Messages.AccsesDenied;
+            var service = GetPatientsControllerForGetPatientsMethod(
+                dbUsers: new[]
+                {
+                    new UserMock()
+                    {
+                        UserId = 1,
+                        Email = &quot;example@gmail.com&quot;
+                    }
+                },
+                dbDoctors: new[]
+                {
+                    new Doctor()
+                    {
+                        UserId = 1,
+                    }
+                }
+                );
+            var actionResult = service.GetPatients() as NegotiatedContentResult&lt;string&gt;;
+            var actual = actionResult.Content;
+            Assert.AreEqual(expected, actual);
+        }
+
+
+
+        [TestMethod]
+        public void GetPatients_DoctorTypeIsDoctorButParamIsNotSet_ReturnForbidden_Test()
+        {
+
+            var expected = HttpStatusCode.Forbidden;
+            var service = GetPatientsControllerForGetPatientsMethod(
+                dbUsers: new[]
+                {
+                    new UserMock()
+                    {
+                        UserId = 1,
+                        Email = &quot;example@gmail.com&quot;
+                    }
+                },
+                dbDoctors: new[]
+                {
+                    new Doctor()
+                    {
+                        UserId = 1,
+                        DoctorType = DoctorType.Doctor
+                    }
+                },
+                identityRole: &quot;Doctor&quot;
+
+                );
+            var actionResult = service.GetPatients() as NegotiatedContentResult&lt;string&gt;;
+            var actual = actionResult.StatusCode;
+            Assert.AreEqual(expected, actual);
+        }
+
+
+        [TestMethod]
+        public void GetPatients_DoctorTypeIsDoctorParamIsNotMatch_ReturnForbidden_Test()
+        {
+
+            var expected = HttpStatusCode.Forbidden;
+            var service = GetPatientsControllerForGetPatientsMethod(
+                dbUsers: new[]
+                {
+                    new UserMock()
+                    {
+                        UserId = 1,
+                        Email = &quot;example@gmail.com&quot;
+                    }
+                },
+                dbDoctors: new[]
+                {
+                    new Doctor()
+                    {
+                        UserId = 1,
+                        DoctorType = DoctorType.Doctor
+                    }
+                },
+                identityRole: &quot;Doctor&quot;
+
+                );
+            var actionResult = service.GetPatients(
+                doctor: 2
+                ) as NegotiatedContentResult&lt;string&gt;;
+            var actual = actionResult.StatusCode;
+            Assert.AreEqual(expected, actual);
+        }
+
+
+        [TestMethod]
+        public void GetPatients_DoctorTypeIsDepartmentHeadParamNotMatch_ReturnForbidden_Test()
+        {
+
+            var expected = HttpStatusCode.Forbidden;
+            var service = GetPatientsControllerForGetPatientsMethod(
+                dbUsers: new[]
+                {
+                    new UserMock()
+                    {
+                        UserId = 1,
+                        Email = &quot;example@gmail.com&quot;
+                    }
+                },
+                dbDoctors: new[]
+                {
+                    new Doctor()
+                    {
+                        UserId = 1,
+                        DoctorType = DoctorType.HeadDepartment,
+                        DepartmentId = 1
+                    }
+                },
+                identityRole: &quot;HeadDepartment&quot;
+
+                );
+            var actionResult = service.GetPatients(
+                doctor: 1,
+                department: 2
+                ) as NegotiatedContentResult&lt;string&gt;;
+            var actual = actionResult.StatusCode;
+            Assert.AreEqual(expected, actual);
+        }
+
+        [TestMethod]
+        public void GetPatients_DBPatientsNotSet_ThrowsArgumentNullExceptionAndSendServerInternalError_Test()
+        {
+            var service = GetPatientsControllerForGetPatientsMethod(
+                dbUsers: new[]
+                {
+                    new UserMock()
+                    {
+                        UserId = 1,
+                        Email = &quot;example@gmail.com&quot;
+                    }
+                },
+                dbDoctors: new[]
+                {
+                    new Doctor()
+                    {
+                        UserId = 1,
+                        DoctorType = DoctorType.Doctor,
+                    }
+                },
+                identityRole: &quot;Doctor&quot;
+
+                );
+            var actionResult = service.GetPatients(
+                doctor: 1
+                );
+            Assert.IsTrue(actionResult is InternalServerErrorResult);
+        }
+
+        [TestMethod]
+        public void GetPatients_DBPatientsIsEmpty_ReturnEmptyArray_Test()
+        {
+            var expected = 0;
+            var service = GetPatientsControllerForGetPatientsMethod(
+                dbUsers: new[]
+                {
+                    new UserMock()
+                    {
+                        UserId = 1,
+                        Email = &quot;example@gmail.com&quot;
+                    }
+                },
+                dbDoctors: new[]
+                {
+                    new Doctor()
+                    {
+                        UserId = 1,
+                        DoctorType = DoctorType.Doctor,
+                    }
+                },
+                dbPatients: Enumerable.Empty&lt;Patient&gt;(),
+                dbAppointments: Enumerable.Empty&lt;Appointment&gt;(),
+                identityRole: &quot;Doctor&quot;
+                );
+            var actionResult = service.GetPatients(
+                doctor: 1
+                ) as OkNegotiatedContentResult&lt;JsonDto&gt;;
+            var actual = actionResult.Content.data.Count;
+            Assert.AreEqual(expected, actual);
+
+        }
+
+        [TestMethod]
+        public void GetPatients_DBPatientsIsEmpty_CountIsCorrect_Test()
+        {
+            var expected = 0;
+            var service = GetPatientsControllerForGetPatientsMethod(
+                dbUsers: new[]
+                {
+                    new UserMock()
+                    {
+                        UserId = 1,
+                        Email = &quot;example@gmail.com&quot;
+                    }
+                },
+                dbDoctors: new[]
+                {
+                    new Doctor()
+                    {
+                        UserId = 1,
+                        DoctorType = DoctorType.Doctor,
+                    }
+                },
+                dbPatients: Enumerable.Empty&lt;Patient&gt;(),
+                identityRole: &quot;Doctor&quot;
+                );
+            var actionResult = service.GetPatients(
+                doctor: 1
+                ) as OkNegotiatedContentResult&lt;JsonDto&gt;;
+            var actual = actionResult.Content.count;
+            Assert.AreEqual(expected, actual);
+
+        }
+
+        [TestMethod]
+        public void GetPatients_DoctorIsHospitalDean_ReturnsAllPatients_Test()
+        {
+            var expected = 4;
+            var service = GetPatientsControllerForGetPatientsMethod(
+                dbUsers: new[]
+                {
+                    new UserMock()
+                    {
+                        UserId = 1,
+                        Email = &quot;example@gmail.com&quot;
+                    }
+                },
+                dbDoctors: new[]
+                {
+                    new Doctor()
+                    {
+                        UserId = 1,
+                        DoctorType = DoctorType.HospitalDean,
+                    }
+                },
+                dbPatients: new[] {
+                    new Patient
+                    {
+                        UserId = 2,
+                    },
+                    new Patient
+                    {
+                        UserId = 3,
+                    },
+                    new Patient
+                    {
+                        UserId = 4,
+                    },
+                    new Patient
+                    {
+                        UserId = 5,
+                    }
+
+                },
+                identityRole: &quot;HospitalDean&quot;
+                );
+            var actionResult = service.GetPatients(
+                ) as OkNegotiatedContentResult&lt;JsonDto&gt;;
+            var actual = actionResult.Content.count;
+            Assert.AreEqual(expected, actual);
+
+        }       
+    }
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[40,9,40,10,1],[42,13,42,61,1],[44,13,44,33,1],[45,13,45,14,1],[46,17,46,55,1],[47,17,47,111,1],[48,17,48,115,1],[49,17,49,117,1],[50,17,50,92,1],[50,92,50,129,0],[50,129,50,131,1],[50,17,50,131,1],[51,17,51,73,1],[52,13,52,14,1],[54,13,54,36,1],[55,13,55,14,1],[56,17,56,58,1],[57,17,57,117,1],[58,17,58,121,1],[59,17,59,123,1],[60,17,60,95,1],[60,95,60,135,0],[60,135,60,137,1],[60,17,60,137,1],[61,17,61,87,1],[62,17,62,76,1],[64,13,64,14,1],[66,13,66,35,1],[67,13,67,14,1],[68,17,68,57,1],[69,17,69,115,1],[70,17,70,119,1],[71,17,71,121,1],[72,17,72,94,1],[72,94,72,133,0],[72,133,72,135,1],[72,17,72,135,1],[73,17,73,75,1],[74,13,74,14,1],[76,13,76,40,1],[77,13,77,14,1],[78,17,78,62,1],[79,17,79,125,1],[80,17,80,129,1],[81,17,81,131,1],[82,17,82,99,1],[82,99,82,143,0],[82,143,82,145,1],[82,17,82,145,1],[86,13,86,14,1],[87,13,87,70,1],[88,13,91,58,1],[93,13,93,28,1],[94,9,94,10,1],[220,9,220,10,1],[221,13,221,71,1],[222,13,222,54,1],[223,13,223,70,1],[224,9,224,10,1],[228,9,228,10,1],[229,13,231,19,1],[232,13,232,54,1],[233,13,233,70,1],[234,9,234,10,1],[238,9,238,10,1],[239,13,248,19,1],[249,13,249,54,1],[250,13,250,70,1],[251,9,251,10,1],[255,9,255,10,1],[256,13,265,19,1],[266,13,266,54,1],[267,13,267,70,1],[268,9,268,10,1],[272,9,272,10,1],[274,13,274,53,1],[275,13,291,19,1],[292,13,292,89,1],[293,13,293,50,1],[294,13,294,47,1],[295,9,295,10,1],[299,9,299,10,1],[301,13,301,50,1],[302,13,318,19,1],[319,13,319,89,1],[320,13,320,47,1],[321,13,321,47,1],[322,9,322,10,1],[328,9,328,10,1],[330,13,330,53,1],[331,13,350,19,1],[351,13,351,89,1],[352,13,352,50,1],[353,13,353,47,1],[354,9,354,10,1],[359,9,359,10,1],[361,13,361,53,1],[362,13,381,19,1],[382,13,384,54,1],[385,13,385,50,1],[386,13,386,47,1],[387,9,387,10,1],[392,9,392,10,1],[394,13,394,53,1],[395,13,415,19,1],[416,13,419,54,1],[420,13,420,50,1],[421,13,421,47,1],[422,9,422,10,1],[426,9,426,10,1],[427,13,446,19,1],[447,13,449,19,1],[450,13,450,70,1],[451,9,451,10,1],[455,9,455,10,1],[456,13,456,30,1],[457,13,477,19,1],[478,13,480,57,1],[481,13,481,58,1],[482,13,482,47,1],[484,9,484,10,1],[488,9,488,10,1],[489,13,489,30,1],[490,13,509,19,1],[510,13,512,57,1],[513,13,513,53,1],[514,13,514,47,1],[516,9,516,10,1],[520,9,520,10,1],[521,13,521,30,1],[522,13,559,19,1],[560,13,561,57,1],[562,13,562,53,1],[563,13,563,47,1],[565,9,565,10,1]]);
+    </script>
+  </body>
+</html>

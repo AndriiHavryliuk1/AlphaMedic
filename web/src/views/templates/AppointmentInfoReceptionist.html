@@ -2,7 +2,12 @@
     <div class="container-fluid">
         <h2>Appointment Information</h2>
         <hr class="colorgraph">
-        <div class="row">
+
+        <div class="alert alert-danger" ng-show="FailDate">
+
+            Please choose another date, this date has already booked!
+        </div>
+        <div class="row col-md-12">
             <div class="col-xs-12 col-sm-8 col-md-6">
                 <form class="form-horizontal" ng-submit="Confirm()">
                     <div class="form-group">
@@ -24,11 +29,11 @@
                     <div class="form-group" ng-hide="isDoctorSetted">
                         <label class="col-sm-4 control-label">Choose doctor:</label>
                         <div class="col-sm-5">
-                            <select class="form-control" ng-model="appointment.DoctorId" ng-disabled="!isEdit">
+                            <select class="form-control" ng-model="appointment.DoctorId" ng-change="getDuration()" ng-disabled="!isEdit">
                                 <option ng-repeat="doctor in doctors | orderBy:FullName" value="{{doctor.UserId}}">{{doctor.Name + " " + doctor.Surname}}</option>
                             </select>
                         </div>
-                    </div>
+                                </div>
                     <div class="form-group" ng-show="isDoctorSetted">
                         <label class="control-label col-sm-4">Doctor:</label>
                         <a href="#/doctors/{{appointment.DoctorId}}">
@@ -41,17 +46,25 @@
                         </a>
                     </div>
                     <br>
+
+
+
+
                     <div class="form-group">
                         <label class="col-sm-4 control-label">DateTime:</label>
                         <div class="dropdown" ng-show="isEdit">
+
                             <a class="dropdown-toggle my-toggle-select col-sm-5" id="dLabel" role="button" data-toggle="dropdown" data-target="#" href="">
                                 <div class="input-append">
                                     <input type="text" class="form-control" value="{{appointment.Date | date:'yyyy-MM-dd HH:mm'}}">
                                     <span class="add-on">
                                         <i class="icon-calendar"></i>
                                     </span>
+
                                 </div>
                             </a>
+
+
                             <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
                                 <datetimepicker data-ng-model="appointment.Date"></datetimepicker>
                             </ul>
@@ -60,11 +73,13 @@
                             <input type="text" class="form-control" value="{{appointment.Date | date:'yyyy-MM-dd HH:mm'}}" disabled>
                         </div>
                     </div>
+
                     <br>
+
                     <div class="form-group">
                         <label class="col-sm-4 control-label">Symptoms:</label>
                         <div class="col-sm-5">
-                            <textarea class="form-control" rows="5" id="symptoms" readonly>{{appointment.Description}}</textarea>
+                            <textarea class="form-control" style="resize:none;" rows="5" id="symptoms" readonly>{{appointment.Description}}</textarea>
                         </div>
                     </div>
                     <br>
@@ -75,13 +90,10 @@
                         </div>
                     </div>
 
-
-
-
                     <br>
                     <div class="form-group">
                         <label class="control-label col-sm-4">State:</label>
-                        <label class="control-label col-sm-1">{{appointment.State}}</label>
+                        <label class="control-label col-sm-1">{{stateString}}</label>
                     </div>
                     <br>
                     <div ng-show="isEdit">
@@ -92,6 +104,35 @@
                 <button ng-show="isEdit" class=" btn btn-info col-sm-3 col-sm-offset-1" ng-click="Reset()">Cancel Changes</button>
                 <br><br>
             </div>
+
+            <div class="col-md-5 col-sm-5 col-xs-5 " >
+              <!-- Table -->
+              <h2>Doctor appointments</h2>
+              <table class="table table-condensed">
+
+                  <tr>
+                      <th>
+                          Start
+                      </th>
+                      <th>
+                          Finish
+                      </th>
+                  </tr>
+                  <tr ng-repeat="dur in durations">
+                      <td>
+                          {{dur.Start|date:'yyyy-MM-dd HH:mm'}}
+                      </td>
+                      <td>
+                          {{dur.Finish|date:'yyyy-MM-dd HH:mm'}}
+                      </td>
+                  </tr>
+
+
+
+
+              </table>
+          </div>
+
         </div>
 
         <div class="row" ng-hide="isEdit">
@@ -102,6 +143,7 @@
                 <button class="btn btn-default col-md-12" ng-click="Decline()">Delete</button>
             </div>
         </div>
+        <br><br>
         <div class="row" ng-show="isEdit">
             <div class="form-group col-md-2">
                 <button ng-hide="showProcedure" class=" btn btn-default col-md-12" data-toggle="modal" data-target="#myModal">Set Procedure</button>
@@ -122,7 +164,7 @@
                     <div class="form-group">
                         <label for="procedureSelect" class="col-sm-4 control-label">Type of procedure</label>
                         <div class="col-sm-6">
-                            <select class="form-control" id="procedureSelect" ng-model="Type">
+                            <select class="form-control" id="procedureSelect" ng-model="procedure.Type">
                                 <option>Examination</option>
                                 <option>Treatment</option>
                                 <option>Vaccination</option>
@@ -133,14 +175,14 @@
                     <div class="form-group">
                         <label for="name" class="col-sm-4 control-label">Name</label>
                         <div class="col-sm-6">
-                            <input type="text" required placeholder="Name" ng-model="procedure.Name" class="form-control" autofocus>
+                            <input type="text" required placeholder="Name" ng-model="procedure.Name" class="form-control" >
                         </div>
                     </div>
                     <br>
                     <div class="form-group">
                         <label for="description" class="col-sm-4 control-label">Description</label>
                         <div class="col-sm-6">
-                            <textarea class="form-control" required rows="5" ng-model="procedure.Description" id="description" placeholder="Enter description of procedure..."></textarea>
+                            <textarea class="form-control" style="resize:none;" required rows="5" ng-model="procedure.Description" id="description" placeholder="Enter description of procedure..."></textarea>
                         </div>
                     </div>
                     <br>
@@ -196,5 +238,6 @@
                 Procedure hasn't set for this appointment yet.
             </div>
         </div>
+              </div>
     </div>
 </div>

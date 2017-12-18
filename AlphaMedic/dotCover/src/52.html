@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>H:\AlphaMedic\AlphaMedic\Rest\Controllers\DepartmentsController.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web.Http;
+using Rest.Models;
+using Rest.Models.AlphaMedicContext;
+using Microsoft.AspNetCore.JsonPatch;
+using System.Data.Entity.Validation;
+using Rest.Dtos;
+
+namespace Rest.Controllers
+{
+    [RoutePrefix(&quot;api/departments&quot;)]
+    public class DepartmentsController : ApiController
+    {
+
+        private readonly AlphaMedicContext db = new AlphaMedicContext();
+
+        public DepartmentsController() { }
+
+        public DepartmentsController(AlphaMedicContext context)
+        {
+            db = context;
+        }
+
+        [Route(&quot;&quot;)]
+        public IEnumerable&lt;DepartmentDto&gt; GetDepartments()
+        {
+            try
+            {
+                return db.Departments.Select(x =&gt; new DepartmentDto
+                {
+                    Name = x.Name,
+                    Description = x.Description,
+                    DepartmentId = x.DepartmentId
+                }
+                );
+            }
+            catch (NullReferenceException)
+            {
+                return Enumerable.Empty&lt;DepartmentDto&gt;().AsQueryable();
+            }
+        }
+
+        [Route(&quot;{id:int}&quot;)]
+        public IHttpActionResult GetDepartment(int id, [FromUri] bool all = true)
+        {
+            var department = db.Departments.FirstOrDefault(x =&gt; x.DepartmentId == id);
+            if (department == null)
+            {
+                return NotFound();
+            }
+
+            var doc = department.Doctors.FirstOrDefault(x =&gt; x.DoctorType == DoctorType.HeadDepartment);
+
+            var feedbacks = department.Feedbacks.Select(x =&gt; new FeedbackDto
+            {
+                Date = x.Date,
+                Description = x.Description,
+                DepartmentId = x.DepartmentId,
+                FeedbackId = x.FeedbackId,
+                PatientFullName = (x.Patient == null ? &quot;Anonymous&quot; : x.Patient.Name + &quot; &quot; + x.Patient.Surname),
+                PatientURLImage = (x.Patient == null ? Constants.ThisServer + Constants.DefaultPatientImage : Constants.ThisServer + x.Patient.URLImage)
+            });
+
+            ShortUserDto HeadDepartment = null;
+
+            if (doc != null)
+            {
+                HeadDepartment = new ShortUserDto
+                {
+                    Surname = doc.Surname,
+                    Name = doc.Name,
+                    UserId = doc.UserId
+                };
+            }
+            var a = new DepartmentFullDto
+            {
+                HeadDepartment = HeadDepartment,
+                DepartmentId = department.DepartmentId,
+                Description = department.Description,
+                Name = department.Name,
+                Feedbacks = all == true ? feedbacks.ToArray() : feedbacks.Skip(Math.Max(0, department.Feedbacks.Count - 3)).ToArray(),
+                FeedbacksCount = department.Feedbacks.Count,
+                URLImage = Constants.ThisServer + department.URLImage
+            };
+            return Ok(a);
+        }
+
+        [Route(&quot;{id:int}/doctors&quot;)]
+        public IEnumerable&lt;DoctorDto&gt; GetDepartmentDoctors(int id)
+        {
+            try
+            {
+                return db.Doctors.Where(d =&gt; d.DepartmentId == id)
+                    .Select(x =&gt;
+                          new DoctorDto
+                          {
+                              UserId = x.UserId,
+                              Name = x.Name,
+                              Surname = x.Surname,
+                              DepartmentId = (x.Department != null ? x.Department.DepartmentId : default(int)),
+                              DepartmentName = (x.Department != null ? x.Department.Name : string.Empty),
+                              Degree = x.Degree,
+                              Education = x.Education,
+                              StartWorkingTime = (x.Schedule != null ? x.Schedule.StartWorkingTime : default(TimeSpan)),
+                              FinishWorkingTime = (x.Schedule != null ? x.Schedule.FinishWorkingTime : default(TimeSpan)),
+                              URLImage = Constants.ThisServer + x.URLImage,
+                          }).ToArray();
+            }
+            catch (NullReferenceException)
+            {
+                return Enumerable.Empty&lt;DoctorDto&gt;();
+            }
+        }
+
+    
+        [Route(&quot;&quot;)]
+        [Authorize(Roles=Roles.Administrator)]
+        public IHttpActionResult PostDepartment(Department department)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            try
+            {
+                db.Departments.Add(department);
+                db.SaveChanges();
+            }
+            catch (Exception)
+            {
+                return InternalServerError();
+            }
+            return Ok(department.DepartmentId);
+        }
+
+        [Route(&quot;{id:int}&quot;)]
+        [Authorize(Roles=Roles.Administrator)]
+        public IHttpActionResult PatchDepartment(int id, JsonPatchDocument&lt;Department&gt; patchData)
+        {
+            var department = db.Departments.Find(id);
+
+            patchData.ApplyTo(department);
+
+            try
+            {
+                db.SaveChanges();
+            }
+            catch (DbEntityValidationException)
+            {
+                return BadRequest();
+            }
+            return Ok();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                db.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+    }
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[17,9,17,73,0],[17,9,17,73,1],[19,9,19,39,0],[19,40,19,41,0],[19,42,19,43,0],[21,9,21,64,1],[22,9,22,10,1],[23,13,23,26,1],[24,9,24,10,1],[28,9,28,10,1],[30,13,30,14,1],[31,17,37,19,1],[39,13,39,43,0],[40,13,40,14,0],[41,17,41,72,0],[43,9,43,10,1],[47,9,47,10,1],[48,13,48,87,1],[49,13,49,36,1],[50,13,50,14,1],[51,17,51,35,1],[54,13,54,62,1],[54,62,54,103,1],[54,103,54,105,1],[54,13,54,105,1],[56,13,56,62,1],[56,62,64,14,1],[64,14,64,16,1],[56,13,64,16,1],[66,13,66,48,1],[68,13,68,29,1],[69,13,69,14,1],[70,17,75,19,1],[76,13,76,14,1],[77,13,86,15,1],[87,13,87,26,1],[88,9,88,10,1],[92,9,92,10,1],[94,13,94,14,1],[95,17,109,40,1],[111,13,111,43,0],[112,13,112,14,0],[113,17,113,54,0],[115,9,115,10,1],[121,9,121,10,0],[122,13,122,37,0],[123,13,123,14,0],[124,17,124,47,0],[127,13,127,14,0],[128,17,128,48,0],[129,17,129,34,0],[130,13,130,14,0],[131,13,131,30,0],[132,13,132,14,0],[133,17,133,46,0],[135,13,135,48,0],[136,9,136,10,0],[141,9,141,10,0],[142,13,142,54,0],[144,13,144,43,0],[147,13,147,14,0],[148,17,148,34,0],[149,13,149,14,0],[150,13,150,48,0],[151,13,151,14,0],[152,17,152,37,0],[154,13,154,25,0],[155,9,155,10,0],[158,9,158,10,0],[159,13,159,27,0],[160,13,160,14,0],[161,17,161,30,0],[162,13,162,14,0],[163,13,163,37,0],[164,9,164,10,0]]);
+    </script>
+  </body>
+</html>

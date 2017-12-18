@@ -1,27 +1,28 @@
-<div class="container-fluid">
-    <div class="row col-lg-12">
+<div class="fullHeight">
+    <div class="row defaultMargin">
 
-        <div class="col-lg-2 col-sm-3 ">
+        <div class="panel-body col-lg-2 col-sm-3 ">
+
             <img src="{{patient.URLImage}}" class="img-thumbnail profileAvatar" alt="Profile Avatar">
 
             <h3>{{patient.Name}}
                 {{patient.Surname}}</h3>
-
-            <div class="btn-group-vertical profileButtonMenu" role="group" aria-label="Menu">
+            <div class="btn-group-vertical col-md-12 col-lg-12  profileButtonMenu" role="group" aria-label="Menu">
                 <a href="#/medicalHistory/{{patient.UserId}}?page=1">
                     <button class="btn btn-default col-md-12">
                         Medical History</button>
                 </a>
                 <a href="#/registrationForAppointment">
-                    <button class="btn btn-default col-md-12">Register for Appointment</button>
+                    <button class="btn btn-default col-md-12">Register for<br> Appointment</button>
                 </a>
 
                 <button class="btn btn-default col-md-12" data-toggle="modal" data-target="#settingsModalView">Settings</button>
 
             </div>
+
             <br/>
             <div class="span4 ">
-                <div >
+                <div>
                     <dl>
                         <dt class="text-left" id="genderHeaderCabinet">Gender:</dt>
                         <dd id="genderBodyCabinet">{{patient.Gender}}
@@ -53,6 +54,7 @@
             </div>
 
         </div>
+
         <div settings></div>
 
         <div class="col-lg-10 col-sm-10 mycontent-left container-fluid">
@@ -63,15 +65,36 @@
             <div appointment-list="patientAppointments" ng-hide="AnyAppointments"></div>
 
             <div class="container-fluid" ng-show="AnyAppointments">
-                <br><br>
-                <br><br>
-                <h3 class="text-muted text-center">You have no future appointments</h3>
-                <br><br>
-                <br><br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <h2 class="text-muted text-center">You have no upcoming appointments</h2>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
             </div>
 
             <div customdi></div>
 
         </div>
     </div>
+
 </div>

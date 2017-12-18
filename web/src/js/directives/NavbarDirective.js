@@ -5,17 +5,17 @@ app.directive("navbar", function($rootScope) {
             $rootScope.isAuthorized = localStorage.getItem('token') != undefined;
             return `<div class="form-group" ng-show="!isAuthorized">
             <ul class="nav navbar-nav">
-                <li  ng-class="getPath() == '/signIn' ? 'active' : ''">
+                <li  ng-class="getPath2 == '/signIn' ? 'active' : ''">
                     <a href="#/signIn">Sign In</a>
                 </li>
-                <li  ng-class="getPath() == '/signUp' ? 'active' : ''">
+                <li  ng-class="getPath2 == '/signUp' ? 'active' : ''">
                     <a href="#/signUp">Sign Up</a>
                 </li>
             </ul>
         </div>
         <div class="form-group" ng-show="isAuthorized">
         <ul class="nav navbar-nav">
-            <li ng-class="getPath() == '/Cabinet' ? 'active' : ''" >
+            <li ng-class="getPath() == '/Cabinet'  ? 'active' : ''" >
                 <a ng-click="Cabinet()" href="">Cabinet</a>
             </li>
             <li>

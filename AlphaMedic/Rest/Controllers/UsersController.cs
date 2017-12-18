@@ -1,269 +1,241 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Data;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
+using System.Data.Entity.Validation;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Web.Http;
 using System.Web.Http.Description;
-using Rest.Models;
-using Rest.Models.AlphaMedicContext;
-//using JsonPatch;
-using System.Data.Entity.Validation;
+using System.Web.Security;
 using Microsoft.AspNetCore.JsonPatch;
 using Rest.Dtos;
 using Rest.Helpers;
+using Rest.Models;
+using Rest.Models.AlphaMedicContext;
+using Roles = Rest.Models.Roles;
 
 namespace Rest.Controllers
-{   [RoutePrefix("api/users")]
-    public class UsersController : ApiController
-    {
-        private AlphaMedicContext db = new AlphaMedicContext();
+{
+	[RoutePrefix("api/users")]
+	public class UsersController : ApiController
+	{
+		private readonly AlphaMedicContext db = new AlphaMedicContext();
 
-        // GET: api/Users
-        public IQueryable<User> GetUsers()
-        {
-               return db.Users;
-        }
-        // GET: api/Users/5
-        [Authorize]
-        [Route("{id:int}")]
-        [ResponseType(typeof(User))]
-        public IHttpActionResult GetUser(int id)
-        {
-            User user = db.Users.Find(id);
-            if (user == null)
-            {
-                return NotFound();
-            }
-            var res = new UserDto
-            {
-                UserId = user.UserId,
-                Name = user.Name,
-                Surname = user.Surname,
-                DateOfBirth = user.DateOfBirth,
-                Gender = user.Gender,
-                Phone = user.Phone,
-                Address = user.Address,
-                URLImage = Constants.ThisServer + user.URLImage
-            };
-            return Ok(res);
-        }
-        [Authorize]
-        [Route("{id:int}")]
-        public IHttpActionResult PatchActiveState(int id, JsonPatchDocument<User> patchData)
-        {
-            var currentUser = db.Users.FirstOrDefault(x => x.Email == this.User.Identity.Name);
+		// GET: api/Users
+		public IQueryable<User> GetUsers()
+		{
+			return db.Users;
+		}
 
-            if (!this.User.IsInRole(Roles.Administrator) &&  currentUser.UserId!=id )
-            {
-                return Content(HttpStatusCode.Forbidden, Messages.AccsesDenied);
-            }
+		// GET: api/Users/5
+		[Authorize]
+		[Route("{id:int}")]
+		[ResponseType(typeof(User))]
+		public IHttpActionResult GetUser(int id)
+		{
+			var user = db.Users.Find(id);
+			if (user == null)
+				return NotFound();
+			var res = new UserDto
+			{
+				UserId = user.UserId,
+				Name = user.Name,
+				Surname = user.Surname,
+				DateOfBirth = user.DateOfBirth,
+				Gender = user.Gender,
+				Phone = user.Phone,
+				Address = user.Address,
+				URLImage = Constants.ThisServer + user.URLImage
+			};
+			return Ok(res);
+		}
 
-            var objectToUpdate = db.Users.Find(id);
-            patchData.ApplyTo(objectToUpdate);
+		[Authorize]
+		[Route("{id:int}")]
+		public IHttpActionResult PatchActiveState(int id, JsonPatchDocument<User> patchData)
+		{
+			var currentUser = db.Users.FirstOrDefault(x => x.Email == User.Identity.Name);
 
-            try
-            {
-                db.SaveChanges();
-            }
-            catch (DbEntityValidationException e)
-            {
-                string s = "";
-                foreach (var eve in e.EntityValidationErrors)
-                {
-                    s += String.Format("Entity of type \"{0}\" in state \"{1}\" has the following validation errors:",
-                         eve.Entry.Entity.GetType().Name, eve.Entry.State);
-                    foreach (var ve in eve.ValidationErrors)
-                    {
-                        s += String.Format("- Property: \"{0}\", Error: \"{1}\"",
-                            ve.PropertyName, ve.ErrorMessage);
-                    }
-                }
+			if (!User.IsInRole(Roles.Administrator) && currentUser.UserId != id)
+				return Content(HttpStatusCode.Forbidden, Messages.AccsesDenied);
 
-                return BadRequest(s);
-            }
-            return Ok();
+			var objectToUpdate = db.Users.Find(id);
+			patchData.ApplyTo(objectToUpdate);
 
-        }
+			try
+			{
+				db.SaveChanges();
+			}
+			catch (DbEntityValidationException e)
+			{
+				var s = "";
+				foreach (var eve in e.EntityValidationErrors)
+				{
+					s += string.Format("Entity of type \"{0}\" in state \"{1}\" has the following validation errors:",
+						eve.Entry.Entity.GetType().Name, eve.Entry.State);
+					foreach (var ve in eve.ValidationErrors)
+						s += string.Format("- Property: \"{0}\", Error: \"{1}\"",
+							ve.PropertyName, ve.ErrorMessage);
+				}
+
+				return BadRequest(s);
+			}
+			return Ok();
+		}
 
 
+		// PUT: api/Users/5
+		// PUT: api/Patients/5
+		[Authorize]
+		[ResponseType(typeof(void))]
+		[HttpPut]
+		[Route("{id:int}", Name = "PutUser")]
+		public IHttpActionResult PutUser(int id, UserDto user)
+		{
+			var currentUser = db.Users.FirstOrDefault(x => x.Email == User.Identity.Name);
 
-        // PUT: api/Users/5
-        // PUT: api/Patients/5
-        [Authorize]
-        [ResponseType(typeof(void))]
-        [HttpPut]
-        [Route("{id:int}", Name = "PutUser")]
-        public IHttpActionResult PutUser(int id, UserDto user)
-        {
-            var currentUser = db.Users.FirstOrDefault(x => x.Email == this.User.Identity.Name);
+			if (!User.IsInRole(Roles.Administrator) && currentUser.UserId != id)
+				return Content(HttpStatusCode.Forbidden, Messages.AccsesDenied);
 
-            if (!this.User.IsInRole(Roles.Administrator) && currentUser.UserId != id)
-            {
-                return Content(HttpStatusCode.Forbidden, Messages.AccsesDenied);
-            }
-            
-            var tmp = db.Users.Find(id);
+			var tmp = db.Users.Find(id);
 
-            if (tmp == null)
-            {
-                return NotFound();
-            }
+			if (tmp == null)
+				return NotFound();
 
-            tmp.Name = user.Name;
-            tmp.Surname = user.Surname;
-            tmp.Phone = user.Phone;
-            tmp.DateOfBirth = user.DateOfBirth;
-            tmp.Address = user.Address;
-            tmp.Gender = user.Gender;
+			tmp.Name = user.Name;
+			tmp.Surname = user.Surname;
+			tmp.Phone = user.Phone;
+			tmp.DateOfBirth = user.DateOfBirth;
+			tmp.Address = user.Address;
+			tmp.Gender = user.Gender;
 
 
-            db.Entry(tmp).State = EntityState.Modified;
+			db.Entry(tmp).State = EntityState.Modified;
 
-            try
-            {
-                db.SaveChanges();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!UserExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+			try
+			{
+				db.SaveChanges();
+			}
+			catch (DbUpdateConcurrencyException)
+			{
+				if (!UserExists(id))
+					return NotFound();
+				throw;
+			}
+			catch (DbEntityValidationException ex)
+			{
+				return BadRequest(Messages.BadDataInFields);
+			}
+			catch (Exception ex)
+			{
+				return BadRequest(ex.Message);
+			}
 
-            return StatusCode(HttpStatusCode.NoContent);
-        }
-
-
-        [HttpPost]
-        [Route("recovery")]
-        [ResponseType(typeof(void))]
-        public IHttpActionResult PostRecoveryPassword([FromUri]string email)
-        {
-
-            var user = db.Users.FirstOrDefault(x => x.Email == email);
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-            var newpass = System.Web.Security.Membership.GeneratePassword(6, 0);
+			return StatusCode(HttpStatusCode.NoContent);
+		}
 
 
-            EmailInput emailInput = new EmailInput();
-            //var pat = db.Patients.Find(emailPostDto.appointment.PatientId);
-            emailInput.UserName = user.Name + " " + user.Surname;
-            emailInput.Email = user.Email;
-            emailInput.Subject = "Recovery password!";
+		[HttpPost]
+		[Route("recovery")]
+		[ResponseType(typeof(void))]
+		public IHttpActionResult PostRecoveryPassword([FromUri] string email)
+		{
+			var user = db.Users.FirstOrDefault(x => x.Email == email);
+			if (user == null)
+				return NotFound();
 
-            emailInput.Body = 
-                "Hello! \nWe have recodered your password\nYour new password: " + newpass + 
-                "\nPlease change it when you login to the system" + 
-                "\nBest regard,\nAlphaMedic" ;
-            try
-            {
-                EMailHelper.SendNotification(emailInput);
-                user.Password = HashHelper.sha256_hash(newpass);
-                db.Entry(user).State = EntityState.Modified;
-                db.SaveChanges();
-                return Ok();
-            }
-            catch (Exception)
-            {
-                return BadRequest();
-            }
-
-            return StatusCode(HttpStatusCode.NoContent);
-
-        }
+			var newpass = Membership.GeneratePassword(6, 0);
 
 
+			var emailInput = new EmailInput();
+			//var pat = db.Patients.Find(emailPostDto.appointment.PatientId);
+			emailInput.UserName = user.Name + " " + user.Surname;
+			emailInput.Email = user.Email;
+			emailInput.Subject = "Recovery password!";
 
-        [Authorize]
-        [ResponseType(typeof(void))]
-        [HttpPut]
-        [Route("changepass/{id:int}", Name = "ChangePass")]
-        public IHttpActionResult PutUser(int id, ChangePass user)
-        {
-            var currentUser = db.Users.FirstOrDefault(x => x.Email==this.User.Identity.Name);
+			emailInput.Body =
+				"Hello! \nWe have recodered your password\nYour new password: " + newpass +
+				"\nPlease change it when you login to the system" +
+				"\nBest regard,\nAlphaMedic";
+			try
+			{
+				// EMailHelper.SendNotification(emailInput);
+				user.Password = HashHelper.sha256_hash(newpass);
+				db.Entry(user).State = EntityState.Modified;
+				db.SaveChanges();
+				return Ok();
+			}
+			catch (Exception)
+			{
+				return BadRequest();
+			}
 
-            if(currentUser.UserId != id)
-            {
-                return Content(HttpStatusCode.Forbidden, Messages.AccsesDenied);
-            }
+			return StatusCode(HttpStatusCode.NoContent);
+		}
 
-            var tmp = db.Users.Find(id);
 
-            if(tmp == null)
-            {
-                return NotFound();
-            }
+		[Authorize]
+		[ResponseType(typeof(void))]
+		[HttpPut]
+		[Route("changepass/{id:int}", Name = "ChangePass")]
+		public IHttpActionResult PutUser(int id, ChangePass user)
+		{
+			var currentUser = db.Users.FirstOrDefault(x => x.Email == User.Identity.Name);
 
-            if (user.OldPass != tmp.Password)
-            {
-                return BadRequest();
-            }
+			if (currentUser.UserId != id)
+				return Content(HttpStatusCode.Forbidden, Messages.AccsesDenied);
 
-            tmp.Password = user.NewPass;
+			var tmp = db.Users.Find(id);
 
-            db.Entry(tmp).State = EntityState.Modified;
+			if (tmp == null)
+				return NotFound();
 
-            try
-            {
-                db.SaveChanges();
-                return Ok();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!UserExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+			if (user.OldPass != tmp.Password)
+				return BadRequest();
 
-            return StatusCode(HttpStatusCode.NoContent);
-        }
+			tmp.Password = user.NewPass;
 
-        // POST: api/Users
-        [ResponseType(typeof(User))]
-        public IHttpActionResult PostUser(User user)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+			db.Entry(tmp).State = EntityState.Modified;
 
-            db.Users.Add(user);
-            db.SaveChanges();
+			try
+			{
+				db.SaveChanges();
+				return Ok();
+			}
+			catch (DbUpdateConcurrencyException)
+			{
+				if (!UserExists(id))
+					return NotFound();
+				throw;
+			}
 
-            return CreatedAtRoute("DefaultApi", new { id = user.UserId }, user);
-        }
+			return StatusCode(HttpStatusCode.NoContent);
+		}
 
-      
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                db.Dispose();
-            }
-            base.Dispose(disposing);
-        }
+		// POST: api/Users
+		[ResponseType(typeof(User))]
+		public IHttpActionResult PostUser(User user)
+		{
+			if (!ModelState.IsValid)
+				return BadRequest(ModelState);
 
-        private bool UserExists(int id)
-        {
-            return db.Users.Count(e => e.UserId == id) > 0;
-        }
-    }
+			db.Users.Add(user);
+			db.SaveChanges();
+
+			return CreatedAtRoute("DefaultApi", new {id = user.UserId}, user);
+		}
+
+
+		protected override void Dispose(bool disposing)
+		{
+			if (disposing)
+				db.Dispose();
+			base.Dispose(disposing);
+		}
+
+		private bool UserExists(int id)
+		{
+			return db.Users.Count(e => e.UserId == id) > 0;
+		}
+	}
 }

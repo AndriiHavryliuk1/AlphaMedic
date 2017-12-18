@@ -1,5 +1,5 @@
 var app = angular.module('alphaMedicApp');
-app.controller('AddProcedureController', function(URL_FOR_REST, $scope, $http, $routeParams) {
+app.controller('AddProcedureController', function(URL_FOR_REST, $scope, $filter, $http, $routeParams) {
     $scope.Type = "Examination";
     $http.get(URL_FOR_REST.url + "api/departments")
         .success(function(responce) {
@@ -23,8 +23,11 @@ app.controller('AddProcedureController', function(URL_FOR_REST, $scope, $http, $
             "Description": $scope.procedure.Description,
             "DoctorId": $scope.procedure.DoctorId,
             "PatientId": $scope.procedure.MedicalHistoryId,
-            "Date": $scope.procedure.Date
+            "Date": $filter('date')($scope.procedure.Date , "yyyy-MM-dd HH:mm"),
+            "Checked":false
         }
+
+
         $http.post(URL_FOR_REST.url + "api/appointments", appointment, {
                 headers: {
                     'Content-type': 'application/json'

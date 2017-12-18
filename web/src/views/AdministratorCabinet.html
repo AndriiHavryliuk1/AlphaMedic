@@ -15,12 +15,12 @@
             </div>
         </div>
         <div class="col-md-9 col-sm-9  container-fluid mycontent-left">
-            <div  class="mycontent-bottom col-lg-12 row" ng-Show="needSearch">
+            <div  class="mycontent-bottom col-lg-12 row" ng-show="needSearch">
 
 
 
 
-                <div class=" col-lg-5" style="margin-bottom:10px">
+                <div class=" col-lg-5" style="margin-bottom:10px" >
                     <h3>Search by name/surname</h3>
                     <div class="input-group col-md-12 col-sm-12">
                       <input type="text" class="form-control" placeholder="Search" ng-model="pagingInfo.search" name="q">
@@ -31,7 +31,7 @@
                       </div>
                     </div>
                 </div>
-                <div class="col-md-3 col-sm-3" ng-show="isActiveShow">
+                <div class="col-md-3 col-sm-3" >
                     <h3>IsActive</h3>
                     <select ng-model="pagingInfo.isActive" class="form-control" ng-change="AdminFilter()">
                       <option value=""> All </option>

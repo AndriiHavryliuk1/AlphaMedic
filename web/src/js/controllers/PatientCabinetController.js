@@ -10,6 +10,7 @@ app.controller('patientCabinet', function(URL_FOR_REST, $scope, $http, $routePar
     $http.get(URL_FOR_REST.url + "api/patients/" + jwtHelper.decodeToken(localStorage.getItem('token')).id)
         .success(function(responce) {
             $scope.patient = responce;
+          
             $scope.user = {
                 UserId: $scope.patient.UserId,
                 Name: $scope.patient.Name,
@@ -19,17 +20,18 @@ app.controller('patientCabinet', function(URL_FOR_REST, $scope, $http, $routePar
                 Phone: $scope.patient.Phone,
                 Address: $scope.patient.Address
             }
+              $scope.bufferUser=angular.copy($scope.user);
         });
 
 
     $http.get(URL_FOR_REST.url + "api/patients/" + jwtHelper.decodeToken(localStorage.getItem('token')).id + "/appointments")
         .success(function(responce) {
             $scope.patientAppointments = responce;
-            $scope.AnyAppointments = responce == null;
+            $scope.AnyAppointments = responce == null || responce.length == 0;
         });
 
     $scope.ChangePassword = function() {
-        ChangeUserInfoService.ChangePassword($scope.ChangePass, jwtHelper.decodeToken(localStorage.getItem('token')).id);
+        ChangeUserInfoService.ChangePassword($scope.ChangePass, jwtHelper.decodeToken(localStorage.getItem('token')).id,$scope);
     }
 
 
@@ -44,8 +46,9 @@ app.controller('patientCabinet', function(URL_FOR_REST, $scope, $http, $routePar
             });
         }
 
-
-        ChangeUserInfoService.ChangeUser($scope.patient, $scope.user, jwtHelper.decodeToken(localStorage.getItem('token')).id);
+        $scope.notifyError=false;
+        $scope.notifySuccess=false;
+        ChangeUserInfoService.ChangeUser($scope.patient, $scope.bufferUser, jwtHelper.decodeToken(localStorage.getItem('token')).id,$scope);
 
     }
 

@@ -281,7 +281,7 @@
     <Compile Include="Models\Treatment.cs" />
     <Compile Include="Models\User.cs" />
     <Compile Include="Models\UserClaim.cs" />
-    <Compile Include="Models\Vaccionation.cs" />
+    <Compile Include="Models\Vaccination.cs" />
     <Compile Include="Models\WarningLabel.cs" />
     <Compile Include="OAuthServerProvider\ApplicationOAuthServerProvider.cs" />
     <Compile Include="OAuthServerProvider\UserProvider.cs" />
@@ -295,6 +295,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="packages.config" />
+    <Content Include="ClassDiagram1.cd" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

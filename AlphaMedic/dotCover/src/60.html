@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>H:\AlphaMedic\AlphaMedic\Rest\Controllers\PatientsController.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Web.Http;
+using System.Web.Http.Description;
+using Rest.Models;
+using Rest.Models.AlphaMedicContext;
+using System.Security.Claims;
+using System.Linq.Dynamic;
+using System.Data.Entity.Validation;
+using Microsoft.AspNetCore.JsonPatch;
+using Rest.Dtos;
+using Rest.Helpers;
+
+namespace Rest.Controllers
+{
+    [RoutePrefix(&quot;api/patients&quot;)]
+    public class PatientsController : ApiController
+    {
+        private AlphaMedicContext db = new AlphaMedicContext();
+
+        public PatientsController() { }
+        public PatientsController(AlphaMedicContext context)
+        {
+            this.db = context;
+        }
+
+        // GET: api/Patients
+        [Route(&quot;&quot;)]
+        [Authorize(Roles = Roles.Administrator + &quot;,&quot; + Roles.AllDoctors + &quot;,&quot; + Roles.Receptionist)]
+        public IHttpActionResult GetPatients(int page = 1, int itemsPerPage = 15,
+            string sortBy = &quot;UserId&quot;, bool reverse = false,
+            string search = null, int? doctor = null,
+            int? department = null)
+        {
+            try
+            {
+                var currentUser = db.Users.FirstOrDefault(x =&gt; x.Email == this.User.Identity.Name);
+                var maybeDoctor = db.Doctors.FirstOrDefault(x =&gt; x.UserId == currentUser.UserId);
+
+                if (maybeDoctor != null)
+                {
+                    if (!Tools.AnyRole(this.User, Roles.DoctorRoles))
+                        return Content(HttpStatusCode.Forbidden, Messages.AccsesDenied);
+
+                    if (maybeDoctor.DoctorType != DoctorType.HospitalDean &amp;&amp;
+                     (doctor != currentUser.UserId || doctor == null))
+                        return Content(HttpStatusCode.Forbidden, Messages.AccsesDenied);
+
+                    if (maybeDoctor.DoctorType == DoctorType.HeadDepartment &amp;&amp; 
+                        maybeDoctor.DepartmentId != department &amp;&amp; 
+                        department != null)
+                        return Content(HttpStatusCode.Forbidden, Messages.AccsesDenied);
+                }
+
+                var users = db.Patients.AsQueryable();
+                if (department != null)
+                {
+                    users = users.Where(x =&gt; x.Appointments.Any(d =&gt; d.Doctor.DepartmentId == department)); //x.Procedure.Doctor.DepartmentId == department);
+                }
+
+                if (doctor != null)
+                {
+                    users = users.Where(x =&gt; x.Appointments.Any(d =&gt; d.Doctor.UserId == doctor));//x.Procedure.Doctor.DoctorId == doctor);
+                }
+
+                var nusers = users.//db.Patients.//Include(c =&gt; c.Appointments).
+                Select(x =&gt; new
+                {
+                    x.UserId,
+                    x.Name,
+                    x.Surname,
+                    URLImage = Constants.ThisServer + x.URLImage,
+
+                    Procedure = x.Appointments.
+                    Where(a =&gt; a.State == AppointmentState.Accepted)
+                    .Select(
+                    p =&gt; new
+                    {
+                        ProcedureId = p.AppointmentId,
+                        ProcedureName = p.Procedure.Name ?? string.Empty,
+                        Doctor = (p.Doctor != null ?
+                        new
+                        {
+                            DoctorFullName = p.Doctor.Name + &quot; &quot; + p.Doctor.Surname,
+                            DoctorId = p.Doctor.UserId,
+                            DepartmentId = p.Doctor.DepartmentId
+                        }
+                        : null)
+                    }
+                    ).OrderByDescending(i =&gt; i.ProcedureId)
+                    .FirstOrDefault()
+                }
+                ).AsQueryable();
+
+
+                // searching
+                if (!string.IsNullOrWhiteSpace(search))
+                {
+                    search = search.ToLower();
+                    nusers = nusers.Where(x =&gt;
+                        (x.Name + x.Surname).ToLower().Contains(search.Replace(&quot; &quot;, &quot;&quot;)) ||
+                        (x.Surname + x.Name).ToLower().Contains(search.Replace(&quot; &quot;, &quot;&quot;)));
+                }
+
+                // sorting (done with the System.Linq.Dynamic library available on NuGet)
+                nusers = nusers.OrderBy(sortBy + (reverse ? &quot;descending&quot; : &quot;&quot;));
+
+                // paging
+                var usersPaged = nusers.Skip((page - 1) * itemsPerPage).Take(itemsPerPage).ToArray();
+
+                // json result
+                var json = new JsonDto
+                {
+                    count = nusers.Count(),
+                    data = usersPaged
+                };
+
+                return Ok(json);
+            }
+            catch (ArgumentNullException)
+            {
+                return InternalServerError();
+            }
+            catch (ArgumentException)
+            {
+                return BadRequest();
+            }
+        }
+        [Authorize]
+        [Route(&quot;{id:int}/patients&quot;)]
+        public IHttpActionResult GetPatientsByDoctorId(int id)
+        {
+            var currentUser = db.Users.FirstOrDefault(x =&gt; x.Email == this.User.Identity.Name);
+
+            if ((Tools.AnyRole(this.User, Roles.DoctorRoles) &amp;&amp; currentUser.UserId != id) &amp;&amp; !this.User.IsInRole(Roles.Receptionist))
+            {
+                return Content(HttpStatusCode.Forbidden, Messages.AccsesDenied);
+            }
+
+            var dep = db.Doctors.FirstOrDefault(x =&gt; x.UserId == id).Department;
+            var data = new
+            {
+                Department = new
+                {
+                    dep.DepartmentId,
+                    dep.Name
+                },
+                Patients = db.Appointments.Where(x =&gt; x.DoctorId == id).Select(p =&gt; p.Patient).Select(a =&gt; new
+                {
+                    a.UserId,
+                    a.Name,
+                    a.Surname,
+                    URLImage = Models.Constants.ThisServer + a.URLImage,
+
+                    Procedure = a.Appointments.Select(
+                       p =&gt; new
+                       {
+                           p.AppointmentId,
+                           ProcedureName = p.Procedure.Name,
+                           DoctorFullName = p.Doctor.Name + &quot; &quot; + p.Doctor.Surname,
+                           DoctorId = p.Doctor.UserId
+                       }
+                       ).FirstOrDefault()
+                }
+                               ).AsQueryable()
+
+
+            };
+
+            return Ok(data);
+        }
+
+
+
+        [HttpPost]
+        [Route(&quot;{id:int}/confirmRegistration&quot;)]
+        [ResponseType(typeof(void))]
+        public IHttpActionResult SendConfirmRegisterEmail(int id, object user)
+        {
+
+            EmailInput emailInput = new EmailInput();
+            var pat = db.Patients.Find(id);
+            emailInput.UserName = pat.FullName;
+            emailInput.Email = pat.Email;
+            emailInput.Subject = &quot;Confirm registration!&quot;;
+
+            try
+            {
+                EMailHelper.SendConfirmRegisterNotification(emailInput, id);
+            }
+            catch (Exception)
+            {
+                return BadRequest();
+            }
+
+            return Ok();
+
+        }
+
+        [Authorize]
+        [Route(&quot;~/api/patients/{id:int}/appointments&quot;)]
+
+        public IHttpActionResult GetPatientAppointments(int id)
+        {
+            var currentUser = db.Users.FirstOrDefault(x =&gt; x.Email == this.User.Identity.Name);
+
+            if (currentUser == null)
+            {
+                return NotFound();
+            }
+
+            if (this.User.IsInRole(Roles.Patient) &amp;&amp; currentUser.UserId != id)
+            {
+                return Content(HttpStatusCode.Forbidden, Messages.AccsesDenied);
+            }
+
+            var result = db.Appointments.Where(x =&gt; x.PatientId == id &amp;&amp;x.State!=AppointmentState.Finished).Select(x =&gt; new
+               {
+                   x.AppointmentId,
+                   x.Date,
+                   x.Duration,
+                   State = x.State.ToString(),
+                   x.DoctorId,
+                   x.Doctor.Name,
+                   x.Doctor.Surname
+               }
+             );
+
+            var result2 = result.Where(x =&gt; x.Date == null);
+            var result3 = result.Where(x =&gt; x.Date &gt; DateTime.Now).OrderByDescending(x =&gt; x.Date);
+
+            result = result2.Concat(result3);// + (true ? &quot; descending&quot; : &quot;&quot;));
+            //var usersPaged = result.Skip(Math.Max(0, result.Count() - 7)).ToArray();
+            //result.OrderByDescending(x =&gt; x.Date).Skip(Math.Max(0, result.Count() - 5));
+            return Ok(result);
+        }
+
+        // GET: api/Patients/5       
+
+
+        [Authorize]
+        [Route(&quot;{id:int}&quot;, Name = &quot;GetPatientById&quot;)]
+        public IHttpActionResult GetPatient(int id)
+        {
+            var patient = db.Patients.FirstOrDefault(x =&gt; x.UserId == id);
+
+            if (!ModelState.IsValid || patient == null)
+            {
+                return NotFound();
+            }
+
+            var currentUser = db.Users.FirstOrDefault(x =&gt; x.Email == User.Identity.Name);
+
+            if (currentUser == null)
+                return NotFound();
+
+            if (User.IsInRole(Roles.Patient) &amp;&amp; id != currentUser.UserId)
+                return Content(HttpStatusCode.Forbidden, Messages.AccsesDenied);
+
+            if (Tools.AnyRole(this.User, Roles.DoctorRoles))
+            {
+                if (User.IsInRole(Roles.Doctor) &amp;&amp; !patient.Appointments.Any(x =&gt; x.DoctorId == currentUser.UserId))
+                    return Content(HttpStatusCode.Forbidden, Messages.AccsesDenied);
+
+                var department = db.Doctors.FirstOrDefault(x =&gt; x.Email == this.User.Identity.Name).DepartmentId;
+                if (department == default(int))
+                    return NotFound();
+
+                if (User.IsInRole(Roles.DepartmentHead) &amp;&amp;
+                !patient.Appointments.Any(d =&gt; d.Doctor.DepartmentId == department))
+                    return Content(HttpStatusCode.Forbidden, Messages.AccsesDenied);
+            }
+
+            var responce = new
+            {
+                patient.UserId,
+                patient.FullName,
+                patient.DateOfBirth,
+                patient.Phone,
+                patient.Name,
+                patient.Surname,
+                patient.Address,
+                Gender = patient.Gender.ToString(),
+                patient.BloodGroup,
+                URLImage = Constants.ThisServer + patient.URLImage
+            };
+
+            return Ok(responce);
+        }
+
+        [Authorize(Roles = Roles.Administrator)]
+        [Route(&quot;allPatients&quot;, Name = &quot;AllPatients&quot;)]
+        public IHttpActionResult GetAllPatients(int page = 1, int itemsPerPage = 15,
+            string sortBy = &quot;UserId&quot;, bool reverse = false,
+            string search = null, bool? isActive = null)
+        {
+            var users = db.Patients.Select(
+                 p =&gt; new
+                 {
+                     p.Name,
+                     p.Surname,
+                     Gender = p.Gender.ToString(),
+                     p.DateOfBirth,
+                     p.Phone,
+                     p.Address,
+                     p.Email,
+                     p.Active,
+                     p.UserId
+
+                 });
+
+            if (isActive != null)
+            {
+                users = users.Where(x =&gt; x.Active == isActive);
+            }
+            // searching
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                search = search.ToLower();
+                users = users.Where(x =&gt;
+                    x.Name.ToLower().Contains(search) ||
+                    x.Surname.ToLower().Contains(search));
+            }
+
+            // sorting (done with the System.Linq.Dynamic library available on NuGet)
+            users = users.OrderBy(sortBy + (reverse ? &quot;descending&quot; : &quot;&quot;));
+
+            // paging
+            var usersPaged = users.Skip((page - 1) * itemsPerPage).Take(itemsPerPage);
+
+
+            var json = new
+            {
+                count = users.Count(),
+                data = usersPaged
+            };
+
+            return Ok(json);
+
+        }
+
+
+
+        [ResponseType(typeof(void))]
+        [HttpPut]
+        [Route(&quot;changeState/{id:int}&quot;, Name = &quot;ChangeState&quot;)]
+        public IHttpActionResult PutUser2(int id, object state)
+        {
+            var user = db.Users.Find(id);
+
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+
+            if (user.Active != true)
+            {
+                user.Active = true;
+            }
+
+            db.Entry(user).State = EntityState.Modified;
+
+            try
+            {
+                db.SaveChanges();
+                return Ok();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!PatientExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return StatusCode(HttpStatusCode.NoContent);
+        }
+
+
+        [Authorize(Roles = Roles.Patient)]
+        [ResponseType(typeof(void))]
+        [HttpPut]
+        [Route(&quot;changepass/{id:int}&quot;, Name = &quot;ChangePass2&quot;)]
+        public IHttpActionResult PutPatient(int id, ChangePass user)
+        {
+            var currentUser = db.Users.FirstOrDefault(x =&gt; x.Email == this.User.Identity.Name);
+
+
+            var tmp = db.Users.Find(id);
+
+            if (tmp == null)
+            {
+                return NotFound();
+            }
+
+            if (currentUser.UserId != id)
+            {
+                return Content(HttpStatusCode.Forbidden, Messages.AccsesDenied);
+            }
+
+            if (user.OldPass != tmp.Password)
+            {
+                return BadRequest();
+            }
+
+            tmp.Password = user.NewPass;
+
+
+            db.Entry(tmp).State = EntityState.Modified;
+
+            try
+            {
+                db.SaveChanges();
+                return Ok();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!PatientExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return StatusCode(HttpStatusCode.NoContent);
+        }
+
+
+
+        // PUT: api/Patients/5
+        [ResponseType(typeof(void))]
+        [HttpPut]
+        [Route(&quot;{id:int}&quot;, Name = &quot;PutPatient&quot;)]
+        public IHttpActionResult PutPatient(int id, Patient user)
+        {
+            //if (!ModelState.IsValid)
+            //{
+            //    return BadRequest(ModelState);
+            //}
+
+            if (id != user.UserId)
+            {
+                return BadRequest();
+            }
+
+            var tmp = db.Users.Find(id);
+            if (tmp == null)
+            {
+                return NotFound();
+            }
+
+            tmp.Name = user.Name;
+            tmp.Surname = user.Surname;
+            tmp.Phone = user.Phone;
+            tmp.DateOfBirth = user.DateOfBirth;
+            tmp.Address = user.Address;
+            tmp.Gender = user.Gender;
+
+
+            db.Entry(tmp).State = EntityState.Modified;
+
+            try
+            {
+                db.SaveChanges();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!PatientExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            catch (Exception ex)
+            {
+                return InternalServerError(ex);
+            }
+
+            return StatusCode(HttpStatusCode.NoContent);
+        }
+
+
+        // POST: api/Patients
+        [Route(&quot;&quot;)]
+        [ResponseType(typeof(Patient))]
+        public IHttpActionResult PostPatient(Patient patient)
+        {
+            if (!ModelState.IsValid || db.Users.Any(x =&gt; x.Email == patient.Email))
+            {
+                return BadRequest(ModelState);
+            }
+
+            var medicalHistory = new MedicalHistory() { MedicalHistoryId = patient.UserId };
+            int UserClaimId = db.UserClaims.FirstOrDefault(x =&gt; x.ClaimValue == &quot;Patient&quot;).Id;
+            patient.UserClaimId = UserClaimId;
+
+            patient.URLImage = Constants.DefaultPatientImage;
+            try
+            {
+                db.Patients.Add(patient);
+                db.MedicalHistorys.Add(medicalHistory);
+                db.SaveChanges();
+                return CreatedAtRoute(&quot;GetPatientById&quot;, new { id = patient.UserId }, patient);
+            }
+            catch (Exception ex)
+            {
+                return InternalServerError(ex);
+            }
+            return StatusCode(HttpStatusCode.NoContent);
+        }
+
+        // DELETE: api/Patients/5
+        [HttpDelete]
+        [Route(&quot;{id:int}&quot;, Name = &quot;DeletePatient&quot;)]
+        [ResponseType(typeof(Patient))]
+        public IHttpActionResult DeletePatient(int id, object data)
+        {
+            User patient = db.Users.Find(id);
+            if (patient == null)
+            {
+                return NotFound();
+            }
+
+            db.Patients.Remove((Patient)patient);
+            db.SaveChanges();
+
+            return Ok();
+        }
+
+
+        [Route(&quot;forRegistrationConfirm/{id:int}&quot;, Name = &quot;GetPatient&quot;)]
+        public IHttpActionResult GetPatientForConfirm(int id)
+        {
+
+
+            var patient = db.Users.FirstOrDefault(x =&gt; x.UserId == id);
+
+            if (patient == null)
+            {
+                return NotFound();
+            }
+
+
+
+            var a = new
+            {
+                patient.UserId,
+                patient.Email,
+                patient.Active
+            };
+
+            return Ok(a);
+        }
+
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                db.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        private bool PatientExists(int id)
+        {
+            return db.Users.Count(e =&gt; e.UserId == id) &gt; 0;
+        }
+    }
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[25,9,25,64,0],[25,9,25,64,1],[27,9,27,36,0],[27,37,27,38,0],[27,39,27,40,0],[28,9,28,61,1],[29,9,29,10,1],[30,13,30,31,1],[31,9,31,10,1],[40,9,40,10,1],[42,13,42,14,1],[43,17,43,100,1],[44,17,44,98,1],[46,17,46,41,1],[47,17,47,18,1],[48,21,48,70,1],[49,25,49,89,1],[51,21,52,71,1],[53,25,53,89,1],[55,21,57,44,1],[58,25,58,89,1],[59,17,59,18,1],[61,17,61,55,1],[62,17,62,40,1],[63,17,63,18,0],[64,21,64,108,0],[65,17,65,18,0],[67,17,67,36,1],[68,17,68,18,1],[69,21,69,98,1],[70,17,70,18,1],[72,17,99,33,1],[103,17,103,56,1],[104,17,104,18,0],[105,21,105,47,0],[106,21,108,91,0],[109,17,109,18,0],[112,17,112,81,1],[115,17,115,102,1],[118,17,122,19,1],[124,17,124,33,1],[126,13,126,42,1],[127,13,127,14,1],[128,17,128,46,1],[130,13,130,38,0],[131,13,131,14,0],[132,17,132,37,0],[134,9,134,10,1],[138,9,138,10,0],[139,13,139,96,0],[141,13,141,134,0],[142,13,142,14,0],[143,17,143,81,0],[146,13,146,81,0],[147,13,174,15,0],[176,13,176,29,0],[177,9,177,10,0],[185,9,185,10,0],[187,13,187,54,0],[188,13,188,44,0],[189,13,189,48,0],[190,13,190,42,0],[191,13,191,58,0],[194,13,194,14,0],[195,17,195,77,0],[196,13,196,14,0],[197,13,197,30,0],[198,13,198,14,0],[199,17,199,37,0],[202,13,202,25,0],[204,9,204,10,0],[210,9,210,10,0],[211,13,211,96,0],[213,13,213,37,0],[214,13,214,14,0],[215,17,215,35,0],[218,13,218,79,0],[219,13,219,14,0],[220,17,220,81,0],[223,13,233,16,0],[235,13,235,61,0],[236,13,236,99,0],[238,13,238,46,0],[241,13,241,31,0],[242,9,242,10,0],[250,9,250,10,0],[251,13,251,75,0],[253,13,253,56,0],[254,13,254,14,0],[255,17,255,35,0],[258,13,258,91,0],[260,13,260,37,0],[261,17,261,35,0],[263,13,263,74,0],[264,17,264,81,0],[266,13,266,61,0],[267,13,267,14,0],[268,17,268,83,0],[268,83,268,115,0],[268,115,268,117,0],[268,17,268,117,0],[269,21,269,85,0],[271,17,271,114,0],[272,17,272,48,0],[273,21,273,39,0],[275,17,276,48,0],[276,48,276,83,0],[276,83,276,85,0],[275,17,276,85,0],[277,21,277,85,0],[278,13,278,14,0],[280,13,292,15,0],[294,13,294,33,0],[295,9,295,10,0],[302,9,302,10,0],[303,13,316,21,0],[318,13,318,34,0],[319,13,319,14,0],[320,17,320,64,0],[321,13,321,14,0],[323,13,323,52,0],[324,13,324,14,0],[325,17,325,43,0],[326,17,328,59,0],[329,13,329,14,0],[332,13,332,75,0],[335,13,335,87,0],[338,13,342,15,0],[344,13,344,29,0],[346,9,346,10,0],[354,9,354,10,0],[355,13,355,42,0],[357,13,357,30,0],[358,13,358,14,0],[359,17,359,35,0],[363,13,363,37,0],[364,13,364,14,0],[365,17,365,36,0],[366,13,366,14,0],[368,13,368,57,0],[371,13,371,14,0],[372,17,372,34,0],[373,17,373,29,0],[375,13,375,49,0],[376,13,376,14,0],[377,17,377,40,0],[378,17,378,18,0],[379,21,379,39,0],[382,17,382,18,0],[383,21,383,27,0],[388,9,388,10,0],[396,9,396,10,0],[397,13,397,96,0],[400,13,400,41,0],[402,13,402,29,0],[403,13,403,14,0],[404,17,404,35,0],[407,13,407,42,0],[408,13,408,14,0],[409,17,409,81,0],[412,13,412,46,0],[413,13,413,14,0],[414,17,414,37,0],[417,13,417,41,0],[420,13,420,56,0],[423,13,423,14,0],[424,17,424,34,0],[425,17,425,29,0],[427,13,427,49,0],[428,13,428,14,0],[429,17,429,40,0],[430,17,430,18,0],[431,21,431,39,0],[434,17,434,18,0],[435,21,435,27,0],[440,9,440,10,0],[449,9,449,10,0],[455,13,455,35,0],[456,13,456,14,0],[457,17,457,37,0],[460,13,460,41,0],[461,13,461,29,0],[462,13,462,14,0],[463,17,463,35,0],[466,13,466,34,0],[467,13,467,40,0],[468,13,468,36,0],[469,13,469,48,0],[470,13,470,40,0],[471,13,471,38,0],[474,13,474,56,0],[477,13,477,14,0],[478,17,478,34,0],[479,13,479,14,0],[480,13,480,49,0],[481,13,481,14,0],[482,17,482,40,0],[483,17,483,18,0],[484,21,484,39,0],[487,17,487,18,0],[488,21,488,27,0],[491,13,491,33,0],[492,13,492,14,0],[493,17,493,48,0],[496,13,496,57,0],[497,9,497,10,0],[504,9,504,10,0],[505,13,505,84,0],[506,13,506,14,0],[507,17,507,47,0],[510,13,510,93,0],[511,13,511,95,0],[512,13,512,47,0],[514,13,514,62,0],[516,13,516,14,0],[517,17,517,42,0],[518,17,518,56,0],[519,17,519,34,0],[520,17,520,95,0],[522,13,522,33,0],[523,13,523,14,0],[524,17,524,48,0],[527,9,527,10,0],[534,9,534,10,0],[535,13,535,46,0],[536,13,536,33,0],[537,13,537,14,0],[538,17,538,35,0],[541,13,541,50,0],[542,13,542,30,0],[544,13,544,25,0],[545,9,545,10,0],[550,9,550,10,0],[553,13,553,72,0],[555,13,555,33,0],[556,13,556,14,0],[557,17,557,35,0],[562,13,567,15,0],[569,13,569,26,0],[570,9,570,10,0],[574,9,574,10,0],[575,13,575,27,0],[576,13,576,14,0],[577,17,577,30,0],[578,13,578,14,0],[579,13,579,37,0],[580,9,580,10,0],[583,9,583,10,0],[584,13,584,60,0],[585,9,585,10,0]]);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>H:\AlphaMedic\AlphaMedic\Rest\Models\Department.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
+using System.Web;
+
+namespace Rest.Models
+{
+    public class Department:IFeedbackObject
+    {
+        public Department()
+        {
+            Doctors = new List&lt;Doctor&gt;();
+            Feedbacks = new List&lt;Feedback&gt;();
+        }
+
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        [Key]
+        public int DepartmentId { get; set; }
+        [Required]
+        public string Name { get; set; }
+        [Required]
+        public string Description { get; set; }
+        public string URLImage { get; set; }
+
+
+        public virtual ICollection&lt;Doctor&gt; Doctors { get; set; }
+        public virtual ICollection&lt;Feedback&gt; Feedbacks { get; set; }
+
+
+        [NotMapped]
+        public Doctor HeadDepartment { get; set; }
+    }
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[12,9,12,28,1],[13,9,13,10,1],[14,13,14,42,1],[15,13,15,46,1],[16,9,16,10,1],[20,35,20,39,1],[20,40,20,44,1],[22,30,22,34,1],[22,35,22,39,1],[24,37,24,41,1],[24,42,24,46,1],[25,34,25,38,1],[25,39,25,43,0],[28,54,28,58,1],[28,59,28,63,1],[29,58,29,62,1],[29,63,29,67,1],[33,40,33,44,0],[33,45,33,49,0]]);
+    </script>
+  </body>
+</html>

@@ -48,13 +48,17 @@
 <div class="container-fluid">
     <div class="mycontent-bottom inline">
         <h3>Feedback</h3>
-        <button class="btn btn-primary " ng-click="AllFeedbacksFunc()" ng-show="showButtonAllFeedback">{{ButtonName}}</button>
+
+        <a aria-label="Current" ng-click="AllFeedbacksFunc()" ng-show="showButtonAllFeedback"  href="" style="text-decoration: none;">
+            <span aria-hidden="true" >{{ButtonName}}</span>
+        </a>
+
     </div>
     <div class="panel panel-default defaultMargin " ng-model="dep.Feedbacks" ng-repeat="feedback in dep.Feedbacks">
         <div class="panel-body">
             <div class="row">
-                <div class="col-md-2">
-                    <img ng-src="{{feedback.PatientURLImage}}" class="img-responsive" alt="avatar">
+                <div class="col-md-2" >
+                    <img ng-src="{{feedback.PatientURLImage}}" class="img-responsive" alt="avatar" width="150px" height="150px" >
                 </div>
                 <div class="col-md-10">
                     <label class="h4">{{feedback.PatientFullName}}</label>
@@ -70,7 +74,7 @@
         </div>
         <div class="panel panel-default defaultMargin" ng-controller="FeedbacksController">
             <div class="panel-body">
-                <textarea class="form-control" rows="3" ng-model="Feedback.Description"></textarea>
+                <textarea class="form-control" rows="3" style="resize:none;" ng-model="Feedback.Description"></textarea>
                 <br>
                 <button type="button" class="btn btn-primary" ng-click="LeaveFeedback()">Leave Feedback</button>
             </div>

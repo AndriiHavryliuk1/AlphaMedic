@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>H:\AlphaMedic\AlphaMedic\Rest\Controllers\ProceduresController.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Web.Http;
+using System.Web.Http.Description;
+using Rest.Models;
+using Rest.Models.AlphaMedicContext;
+using Rest.Dtos;
+
+namespace Rest.Controllers
+{
+    [RoutePrefix(&quot;api/procedures&quot;)]
+    public class ProceduresController : ApiController
+    {
+        private AlphaMedicContext db = new AlphaMedicContext();
+
+        // GET: api/Procedures
+        public IQueryable&lt;Procedure&gt; GetProcedures()
+        {
+            return db.Procedures;
+        }
+
+        //GET: api/procedures/5
+        [Route(&quot;{id:int}&quot;)]
+        [Authorize(Roles = Roles.Patient + &quot;,&quot; + Roles.AllDoctors + &quot;,&quot; + Roles.Receptionist)]
+        public IHttpActionResult GetProcedure(int id)
+        {
+            var proc = db.Procedures.Find(id);
+
+            var currentUser = db.Users.FirstOrDefault(x =&gt; x.Email == this.User.Identity.Name);
+
+            if (currentUser == null)
+            {
+                return Content(HttpStatusCode.NotFound, Messages.UserNotFound);
+            }
+
+            if (this.User.IsInRole(Roles.Patient) &amp;&amp; proc.MedicalHistory.Patient.UserId != currentUser.UserId)
+            {
+                return Content(HttpStatusCode.Forbidden, Messages.AccsesDenied);
+            }
+
+            if (Tools.AnyRole(this.User, Roles.DoctorRoles) &amp;&amp; proc.Appointment.Doctor.UserId != currentUser.UserId)
+            {
+                return Content(HttpStatusCode.Forbidden, Messages.AccsesDenied);
+            }
+
+            switch (proc.GetType().BaseType.Name)
+            {
+                case &quot;Examination&quot;:
+                    {
+                        return Ok(
+                            new ExaminationDto
+                            {
+                                ProcedureId = (int)proc.ProcedureId,
+                                Name = proc.Name,
+                                Description = proc.Description,
+                                Date = proc.Date,
+                                Price = proc.Price ?? default(decimal),
+                                Diagnosis = ((Examination)proc).Diagnosis,
+                                Doctor = proc.Appointment.Doctor != null ? new ShortUserDto
+                                {
+                                    Name = proc.Appointment.Doctor.Name,
+                                    Surname = proc.Appointment.Doctor.Surname,
+                                    UserId = proc.Appointment.Doctor.UserId
+                                } : null
+                            }
+                            );
+                    }
+                case &quot;Vaccination&quot;:
+                    {
+                        return Ok(
+                            new VaccinationDto
+                            {
+                                ProcedureId = (int)proc.ProcedureId,
+                                Name = proc.Name,
+                                Description = proc.Description,
+                                Date = proc.Date,
+                                Price = proc.Price ?? default(decimal),
+                                Doctor = proc.Appointment.Doctor != null ? new ShortUserDto
+                                {
+                                    Name = proc.Appointment.Doctor.Name,
+                                    Surname = proc.Appointment.Doctor.Surname,
+                                    UserId = proc.Appointment.Doctor.UserId
+                                } : null
+                            }
+                            );
+                    }
+                case &quot;Treatment&quot;:
+                    {
+                        return Ok(
+                            new TreatmentDto
+                            {
+                                ProcedureId = (int)proc.ProcedureId,
+                                Name = proc.Name,
+                                Description = proc.Description,
+                                Date = proc.Date,
+                                Price = proc.Price ?? default(decimal),
+                                Doctor = proc.Appointment.Doctor != null ? new ShortUserDto
+                                {
+                                    Name = proc.Appointment.Doctor.Name,
+                                    Surname = proc.Appointment.Doctor.Surname,
+                                    UserId = proc.Appointment.Doctor.UserId
+                                } : null,
+                                Result = ((Treatment)proc).Result,
+                                Medications = ((Treatment)proc).Medications.Select(
+                                    x =&gt; new MedicationDto
+                                    {
+                                        MedicationId = x.MedicationId,
+                                        Description = x.Description,
+                                        Price = x.Price
+                                    }
+                                    )
+                            }
+                            );
+                    }
+            }
+            return BadRequest();
+        }
+
+        // PUT: api/Procedures/5
+        [ResponseType(typeof(void))]
+        [Authorize(Roles = Roles.Receptionist)]
+        public IHttpActionResult PutProcedure(int id, Procedure procedure)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            if (id != procedure.ProcedureId)
+            {
+                return BadRequest();
+            }
+
+            db.Entry(procedure).State = EntityState.Modified;
+
+            try
+            {
+                db.SaveChanges();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!ProcedureExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return StatusCode(HttpStatusCode.NoContent);
+        }
+
+        // POST: api/Procedures
+        [ResponseType(typeof(Procedure))]
+        [Authorize(Roles = Roles.Receptionist)]
+        public IHttpActionResult PostProcedure(Procedure procedure)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            db.Procedures.Add(procedure);
+
+            try
+            {
+                db.SaveChanges();
+            }
+            catch (DbUpdateException)
+            {
+                if (ProcedureExists((int)procedure.ProcedureId))
+                {
+                    return Conflict();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return CreatedAtRoute(&quot;DefaultApi&quot;, new { id = procedure.ProcedureId }, procedure);
+        }
+
+        /*     // DELETE: api/Procedures/5
+             [ResponseType(typeof(Procedure))]
+             public IHttpActionResult DeleteProcedure(int id)
+             {
+                 Procedure procedure = db.Procedures.Find(id);
+                 if (procedure == null)
+                 {
+                     return NotFound();
+                 }
+
+                 db.Procedures.Remove(procedure);
+                 db.SaveChanges();
+
+                 return Ok(procedure);
+             }*/
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                db.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        private bool ProcedureExists(int id)
+        {
+            return db.Procedures.Count(e =&gt; e.ProcedureId == id) &gt; 0;
+        }
+    }
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[20,9,20,64,0],[24,9,24,10,0],[25,13,25,34,0],[26,9,26,10,0],[32,9,32,10,0],[33,13,33,47,0],[35,13,35,96,0],[37,13,37,37,0],[38,13,38,14,0],[39,17,39,80,0],[42,13,42,111,0],[43,13,43,14,0],[44,17,44,81,0],[47,13,47,117,0],[48,13,48,14,0],[49,17,49,81,0],[52,13,52,50,0],[55,21,55,22,0],[56,25,72,31,0],[75,21,75,22,0],[76,25,91,31,0],[94,21,94,22,0],[95,25,111,42,0],[111,42,116,38,0],[116,38,119,31,0],[95,25,119,31,0],[122,13,122,33,0],[123,9,123,10,0],[129,9,129,10,0],[130,13,130,37,0],[131,13,131,14,0],[132,17,132,47,0],[135,13,135,45,0],[136,13,136,14,0],[137,17,137,37,0],[140,13,140,62,0],[143,13,143,14,0],[144,17,144,34,0],[145,13,145,14,0],[146,13,146,49,0],[147,13,147,14,0],[148,17,148,42,0],[149,17,149,18,0],[150,21,150,39,0],[153,17,153,18,0],[154,21,154,27,0],[158,13,158,57,0],[159,9,159,10,0],[165,9,165,10,0],[166,13,166,37,0],[167,13,167,14,0],[168,17,168,47,0],[171,13,171,42,0],[174,13,174,14,0],[175,17,175,34,0],[176,13,176,14,0],[177,13,177,38,0],[178,13,178,14,0],[179,17,179,65,0],[180,17,180,18,0],[181,21,181,39,0],[184,17,184,18,0],[185,21,185,27,0],[189,13,189,96,0],[190,9,190,10,0],[209,9,209,10,0],[210,13,210,27,0],[211,13,211,14,0],[212,17,212,30,0],[213,13,213,14,0],[214,13,214,37,0],[215,9,215,10,0],[218,9,218,10,0],[219,13,219,70,0],[220,9,220,10,0]]);
+    </script>
+  </body>
+</html>

@@ -1,4 +1,4 @@
-var app = angular.module('alphaMedicApp', ["ngRoute", "angular.filter","angular-encryption", "angular-jwt", "ui.bootstrap.datetimepicker","ngAnimate", "ngSanitize", "ui.bootstrap"]);
+var app = angular.module('alphaMedicApp', ["ngRoute", "angular.filter","angular-encryption", "angular-jwt", "ui.bootstrap.datetimepicker","ngAnimate", "ngSanitize", "ui.bootstrap","ui.dateTimeInput"]);
 app.config(function($routeProvider) {
     $routeProvider.when('/', {
         templateUrl: 'src/views/Main.html',

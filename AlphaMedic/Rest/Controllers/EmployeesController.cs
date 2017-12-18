@@ -74,7 +74,7 @@ namespace Rest.Controllers
         [Authorize(Roles = Roles.Administrator)]
         [ResponseType(typeof(void))]
         public IHttpActionResult PutEmployee(int id, EmployeeDto employeeDto)
-        {
+       {
            
             if (!ModelState.IsValid)
             {
@@ -104,14 +104,11 @@ namespace Rest.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!EmployeeExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return InternalServerError();
+            }
+            catch(Exception)
+            {
+                return InternalServerError();
             }
 
             return Ok();

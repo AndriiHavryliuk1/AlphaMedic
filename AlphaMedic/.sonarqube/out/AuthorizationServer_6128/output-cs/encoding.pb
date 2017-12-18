@@ -1,0 +1,9 @@
+W
+NH:\AlphaMedic\AlphaMedic\AuthorizationServer\Controllers\AudienceController.csutf-8J
+AH:\AlphaMedic\AlphaMedic\AuthorizationServer\Entities\Audience.csutf-8M
+DH:\AlphaMedic\AlphaMedic\AuthorizationServer\Models\AudienceModel.csutf-8M
+DH:\AlphaMedic\AlphaMedic\AuthorizationServer\Models\AudienceStore.csutf-8I
+@H:\AlphaMedic\AlphaMedic\AuthorizationServer\Models\UserStore.csutf-8P
+GH:\AlphaMedic\AlphaMedic\AuthorizationServer\Properties\AssemblyInfo.csutf-8V
+MH:\AlphaMedic\AlphaMedic\AuthorizationServer\Providers\CustomOAuthProvider.csutf-8@
+7H:\AlphaMedic\AlphaMedic\AuthorizationServer\Startup.csutf-8

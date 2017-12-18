@@ -6,19 +6,30 @@
                 <button class="close" data-dismiss="modal">&times;</button>
                 <h4 class="modal-title">Settings</h4>
             </div>
+            <div class="alert alert-danger" ng-show="notifyError">
+                <strong>Server Error!
+                </strong>
+                {{message}}
+            </div>
+            <div class="alert alert-success" ng-show="notifySuccess">
+                <strong>Success
+                </strong>
+                {{message}}
+            </div>
+          
             <br>
             <br>
             <form class="form-horizontal">
                 <div class="form-group">
                     <label for="name" class="col-sm-3 control-label">Name:</label>
                     <div class="col-sm-9">
-                        <input type="text" id="name" placeholder="Name" ng-model="user.Name" class="form-control" autofocus required maxlength="30">
+                        <input type="text" id="name" placeholder="Name" ng-model="bufferUser.Name" class="form-control"  required maxlength="30">
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="surname" class="col-sm-3 control-label">Surname:</label>
                     <div class="col-sm-9">
-                        <input type="text" id="surname" placeholder="Surname" ng-model="user.Surname" class="form-control" required maxlength="30">
+                        <input type="text" id="surname" placeholder="Surname" ng-model="bufferUser.Surname" class="form-control" required maxlength="30">
                     </div>
                 </div>
                 <div class="form-group">
@@ -27,12 +38,12 @@
                         <div class="row">
                             <div class="col-sm-4">
                                 <label class="radio-inline">
-                                    <input type="radio" name="gender" id="femaleRadio" value="1" ng-model="user.Gender" ng-checked="user.Gender == 'Female'">Female
+                                    <input type="radio" name="gender" id="femaleRadio" value="1" ng-model="bufferUser.Gender" ng-checked="bufferUser.Gender == 'Female'">Female
                                 </label>
                             </div>
                             <div class="col-sm-4">
                                 <label class="radio-inline">
-                                    <input type="radio" name="gender" id="maleRadio" ng-model="user.Gender" value="0" ng-checked="user.Gender == 'Male'">Male
+                                    <input type="radio" name="gender" id="maleRadio" ng-model="bufferUser.Gender" value="0" ng-checked="bufferUser.Gender == 'Male'">Male
                                 </label>
                             </div>
                         </div>
@@ -44,7 +55,7 @@
                     <div class="dropdown">
                         <a class="dropdown-toggle my-toggle-select col-sm-9" id="dLabel" role="button" data-toggle="dropdown">
                             <div class="input-append">
-                                <input type="text" placeholder="Date of birth" class="form-control" ng-value="user.DateOfBirth | date:'dd-MM-yyyy'" >
+                                <input type="text" placeholder="Date of birth" class="form-control" ng-value="bufferUser.DateOfBirth | date:'dd-MM-yyyy'" >
 
                                 <span class="add-on">
                                               <i class="icon-calendar"></i>
@@ -52,21 +63,21 @@
                             </div>
                         </a>
                         <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-                            <datetimepicker data-ng-model="user.DateOfBirth" data-datetimepicker-config="{ minView: 'day' }"></datetimepicker>
+                            <datetimepicker data-ng-model="bufferUser.DateOfBirth" data-datetimepicker-config="{ minView: 'day' }"></datetimepicker>
                         </ul>
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="tel" class="col-sm-3 control-label">Phone</label>
                     <div class="col-sm-9">
-                        <input type="tel" id="tel" class="form-control" placeholder="Phone" ng-model="user.Phone">
+                        <input type="tel" id="tel" class="form-control" placeholder="Phone" ng-model="bufferUser.Phone">
                     </div>
                 </div>
 
                 <div class="form-group">
                     <label for="address" class="col-sm-3 control-label">Address</label>
                     <div class="col-sm-9">
-                        <input type="text" id="address" ng-model="user.Address" placeholder="Address" class="form-control">
+                        <input type="text" id="address" ng-model="bufferUser.Address" placeholder="Address" class="form-control">
                     </div>
                 </div>
 
@@ -84,7 +95,7 @@
                     <div class="row">
                         <!--<button type="submit" class="btn btn-primary btn-block">Register</button>-->
                         <div class="col-xs-6 col-md-6 col-xs-offset-3">
-                            <input type="submit" value="Change" ng-click="ChangeUser()" class="btn btn-primary btn-block btn-lg" data-dismiss="modal" tabindex="7">
+                            <input type="submit" value="Change" ng-click="ChangeUser()" class="btn btn-primary btn-block btn-lg"  tabindex="7">
                         </div>
                     </div>
                 </div>
@@ -117,7 +128,7 @@
                         <div class="row">
                             <!--<button type="submit" class="btn btn-primary btn-block">Register</button>-->
                             <div class="col-xs-6 col-md-6 col-xs-offset-3">
-                                <input type="submit" value="Change" class="btn btn-primary btn-block btn-lg" ng-click="ChangePassword()" data-dismiss="modal" tabindex="7">
+                                <input type="submit" value="Change" class="btn btn-primary btn-block btn-lg" ng-click="ChangePassword()"  tabindex="7">
                             </div>
                         </div>
                     </div>

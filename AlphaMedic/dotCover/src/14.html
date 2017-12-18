@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>H:\AlphaMedic\AlphaMedic\Rest\Models\Appointment.cs</title>
+    <script type="text/javascript" src="../js/dotcover.sourceview.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/dotcover.report.css" />
+  </head>
+  <body>
+    <pre id="content" class="source-code">
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
+using System.Web;
+
+namespace Rest.Models
+{
+    public enum AppointmentState
+    {
+        Unconfirmed, 
+        Accepted, 
+        Finished
+    }
+
+    public class Appointment
+    {
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        [Key]
+        public int AppointmentId { get; set; }
+
+        public AppointmentState State { get; set; }
+
+        [ForeignKey(&quot;Doctor&quot;)]
+        public int? DoctorId { get; set; }
+
+        [ForeignKey(&quot;Patient&quot;)]
+        public int PatientId { get; set; }
+
+        public string Description { get; set; }
+        
+        public DateTime? Date { get; set; }
+
+        [DataType(DataType.Time)]
+        public TimeSpan? Duration { get; set; }
+
+        public bool? Checked { get; set; }
+
+        public virtual Doctor Doctor { get; set; }
+        public virtual Procedure Procedure { get; set; }
+        public virtual Patient Patient { get; set; }
+        
+    }
+}
+    </pre>
+    <script type="text/javascript">
+      highlightRanges([[21,36,21,40,0],[21,41,21,45,0],[23,41,23,45,0],[23,46,23,50,0],[26,32,26,36,0],[26,37,26,41,0],[29,32,29,36,0],[29,37,29,41,0],[31,37,31,41,0],[31,42,31,46,0],[33,33,33,37,0],[33,38,33,42,0],[36,37,36,41,0],[36,42,36,46,0],[38,32,38,36,0],[38,37,38,41,0],[40,40,40,44,0],[40,45,40,49,0],[41,46,41,50,0],[41,51,41,55,0],[42,42,42,46,0],[42,47,42,51,0]]);
+    </script>
+  </body>
+</html>
