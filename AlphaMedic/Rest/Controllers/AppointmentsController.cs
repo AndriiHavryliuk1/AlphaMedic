@@ -5,9 +5,9 @@ using System.Linq;
 using System.Net;
 using System.Web.Http;
 using System.Web.Http.Description;
+using Rest.Data.Appointments;
 using Rest.Models;
 using Rest.Models.AlphaMedicContext;
-using Rest.Helpers;
 using Rest.Dtos;
 
 namespace Rest.Controllers
@@ -19,7 +19,6 @@ namespace Rest.Controllers
 
 
 
-		// GET: api/Appointments
 		[Route("")]
 		[Authorize(Roles = Roles.Receptionist + "," + Roles.AllDoctors)]
 		public IHttpActionResult GetAppointments(DateTime? periodFrom, DateTime? periodTill,
@@ -379,6 +378,35 @@ namespace Rest.Controllers
 		private bool AppointmentExists(int id)
 		{
 			return db.Appointments.Count(e => e.AppointmentId == id) > 0;
+		}
+
+		private object CheckForPermissions(int id)
+		{
+			var currentUser = db.Users.FirstOrDefault(x => x.Email == this.User.Identity.Name);
+
+			if (currentUser == null)
+			{
+				return Content(HttpStatusCode.NotFound, Messages.UserNotFound);
+			}
+
+			var appointment = db.Appointments.FirstOrDefault(x => x.AppointmentId == id);
+
+			if (appointment == null)
+			{
+				return Content(HttpStatusCode.NotFound, Messages.AppointmentNotFound);
+			}
+
+			if (this.User.IsInRole(Roles.Patient) && appointment.PatientId != currentUser.UserId)
+			{
+				return Content(HttpStatusCode.Forbidden, Messages.AccsesDenied);
+			}
+
+			if (Tools.AnyRole(this.User, Roles.DoctorRoles) && appointment.Doctor.UserId != currentUser.UserId)
+			{
+				return Content(HttpStatusCode.Forbidden, Messages.AccsesDenied);
+			}
+
+			return true;
 		}
 	}
 }

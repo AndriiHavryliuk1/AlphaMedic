@@ -238,6 +238,10 @@
     <Compile Include="Controllers\UsersController.cs" />
     <Compile Include="Controllers\VaccionationsController.cs" />
     <Compile Include="Controllers\WarningLabelsController.cs" />
+    <Compile Include="Core\Appointments\IGetAppointments.cs" />
+    <Compile Include="Data\Appointments\CheckForPermissions.cs" />
+    <Compile Include="Data\Appointments\GetAppointments.cs" />
+    <Compile Include="Dtos\Pagginations\AppointmenPaginationsDto.cs" />
     <Compile Include="Dtos\AppointmentDto.cs" />
     <Compile Include="Dtos\PatientDto.cs" />
     <Compile Include="Dtos\DateFilterDto.cs" />
@@ -295,7 +299,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="packages.config" />
-    <Content Include="ClassDiagram1.cd" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -303,9 +306,7 @@
       <DependentUpon>Web.config</DependentUpon>
     </None>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="App_Data\" />
-  </ItemGroup>
+  <ItemGroup />
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>

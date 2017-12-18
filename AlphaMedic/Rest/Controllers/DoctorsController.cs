@@ -16,389 +16,369 @@ using System.Collections.Generic;
 
 namespace Rest.Controllers
 {
-    [RoutePrefix("api/Doctors")]
-    public class DoctorsController : ApiController
-    {
-        private AlphaMedicContext db = new AlphaMedicContext();
+	[RoutePrefix("api/Doctors")]
+	public class DoctorsController : ApiController
+	{
+		private AlphaMedicContext db = new AlphaMedicContext();
 
-        public DoctorsController() { }
+		public DoctorsController() { }
 
-        public DoctorsController(AlphaMedicContext context)
-        {
-            this.db = context;
-        }
+		public DoctorsController(AlphaMedicContext context)
+		{
+			this.db = context;
+		}
 
-        [Route("")]
-        public IHttpActionResult GetUsers(int page = 1, int itemsPerPage = 15, string sortBy = "DoctorId", bool reverse = false, string search = null, int? department = null, bool? isActive = null)
-        {
-            var users = db.Doctors.Select(x => new DoctorDto
-            {
-                UserId = x.UserId, //Achtung, do not touch.
-                DoctorId = x.UserId,
-                URLImage = Constants.ThisServer + x.URLImage,
-                Name = x.Name,
-                Surname = x.Surname,
-                Degree = x.Degree,
-                DepartmentId = x.DepartmentId,
-                Education = x.Education,
-                DoctorType = x.DoctorType.ToString(),
-                DoctorTypeInt = x.DoctorType,
-                DepartmentName = (x.Department != null ? x.Department.Name : null),
-                Active = x.Active
-            });
+		[Route("")]
+		public IHttpActionResult GetUsers(int page = 1, int itemsPerPage = 15, string sortBy = "DoctorId", bool reverse = false, string search = null, int? department = null, bool? isActive = null)
+		{
+			var users = db.Doctors.Select(x => new DoctorDto
+			{
+				UserId = x.UserId, //Achtung, do not touch.
+				DoctorId = x.UserId,
+				URLImage = Constants.ThisServer + x.URLImage,
+				Name = x.Name,
+				Surname = x.Surname,
+				Degree = x.Degree,
+				DepartmentId = x.DepartmentId,
+				Education = x.Education,
+				DoctorType = x.DoctorType.ToString(),
+				DoctorTypeInt = x.DoctorType,
+				DepartmentName = (x.Department != null ? x.Department.Name : null),
+				Active = x.Active
+			});
 
-            if (department != null)
-            {
-                users = users.Where(x => x.DepartmentId == department);
-            }
+			if (department != null)
+			{
+				users = users.Where(x => x.DepartmentId == department);
+			}
 
-            if (isActive != null)
-            {
-                users = users.Where(x => x.Active == isActive);
-            }
-            // searching
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                search = search.ToLower();
-                users = users.Where(x =>
-                    (x.Name + x.Surname).ToLower().Contains(search.Replace(" ", "")) ||
-                    (x.Surname + x.Name).ToLower().Contains(search.Replace(" ", "")));
-            }
+			if (isActive != null)
+			{
+				users = users.Where(x => x.Active == isActive);
+			}
+			// searching
+			if (!string.IsNullOrWhiteSpace(search))
+			{
+				search = search.ToLower();
+				users = users.Where(x =>
+					(x.Name + x.Surname).ToLower().Contains(search.Replace(" ", "")) ||
+					(x.Surname + x.Name).ToLower().Contains(search.Replace(" ", "")));
+			}
 
-            // sorting (done with the System.Linq.Dynamic library available on NuGet)
-            users = users.OrderBy(sortBy + (reverse ? " descending" : ""));
+			// sorting (done with the System.Linq.Dynamic library available on NuGet)
+			users = users.OrderBy(sortBy + (reverse ? " descending" : ""));
 
-            // paging
-            var usersPaged = users.Skip((page - 1) * itemsPerPage).Take(itemsPerPage);
+			// paging
+			var usersPaged = users.Skip((page - 1) * itemsPerPage).Take(itemsPerPage);
 
-            // json result
-            var json = new JsonDto()
-            {
-                count = users.Count(),
-                data = usersPaged.ToArray()
-            };
+			// json result
+			var json = new JsonDto()
+			{
+				count = users.Count(),
+				data = usersPaged.ToArray()
+			};
 
-            return Ok(json);
-        }
+			return Ok(json);
+		}
 
-        [HttpGet]
-        [Route("{id:int}/durations")]
-        public IHttpActionResult GetDurations(int id)
-        {
-            var durations = db.Appointments.Where(x =>
-            x.State == AppointmentState.Accepted &&
-            x.DoctorId == id &&
-            x.Date >= DateTime.Now
-            ).OrderBy("Date");
+		[HttpGet]
+		[Route("{id:int}/durations")]
+		public IHttpActionResult GetDurations(int id)
+		{
+			var durations = db.Appointments.Where(x =>
+			x.State == AppointmentState.Accepted &&
+			x.DoctorId == id &&
+			x.Date >= DateTime.Now
+			).OrderBy("Date");
 
-            var durs = new List<object>();
-                foreach(var d in durations)
-            {
-                var finishTime = d.Date + d.Duration;
-                durs.Add(
-                    new
-                    {
-                        Start = d.Date,
-                        Finish = finishTime
-                    }
-                    );
-            }
-            return Ok(durs);
-        }
-
-
-        //Get : api/Doctors?schedule/5
-        [Route("schedule/{id:int}")]
-        public IHttpActionResult GetDoctorFromSchedule(int id)
-        {
-
-            var doc = db.Doctors.FirstOrDefault(x => x.ScheduleId == id);
-            return Ok(new
-            {
-                doc.UserId,
-                FullName = doc.Name + " " + doc.Surname,
-                URLImage = Constants.ThisServer + doc.URLImage,
-                doc.Schedule.StartWorkingTime,
-                doc.Schedule.FinishWorkingTime,
-                doc.ScheduleId
-            });
-
-        }
+			var durs = new List<object>();
+			foreach (var d in durations)
+			{
+				var finishTime = d.Date + d.Duration;
+				durs.Add(
+					new
+					{
+						Start = d.Date,
+						Finish = finishTime
+					}
+					);
+			}
+			return Ok(durs);
+		}
 
 
-        // GET: api/Doctors/5
-        [Route("{id:int}")]
-        public IHttpActionResult GetDoctor(int id, [FromUri] bool all = true)
-        {
-            Doctor doctor = db.Doctors.FirstOrDefault(x => x.UserId == id && x.Active != false);
-            if (doctor == null)
-            {
-                return NotFound();
-            }
+		//Get : api/Doctors?schedule/5
+		[Route("schedule/{id:int}")]
+		public IHttpActionResult GetDoctorFromSchedule(int id)
+		{
 
-            var feedbacks = doctor.Feedbacks.Select(x => new
-            {
-                x.Date,
-                x.Description,
-                x.DoctorId,
-                x.FeedbackId,
-                PatientFullName =
-                (x.Patient == null ? "Anonymous" : x.Patient.Name + " " + x.Patient.Surname),
-                PatientURLImage = (x.Patient == null ? Constants.ThisServer + Constants.DefaultPatientImage : Constants.ThisServer + x.Patient.URLImage)
-            });
+			var doc = db.Doctors.FirstOrDefault(x => x.ScheduleId == id);
+			return Ok(new
+			{
+				doc.UserId,
+				FullName = doc.Name + " " + doc.Surname,
+				URLImage = Constants.ThisServer + doc.URLImage,
+				doc.Schedule.StartWorkingTime,
+				doc.Schedule.FinishWorkingTime,
+				doc.ScheduleId
+			});
 
-            var res = new
-            {
-                doctor.DepartmentId,
-                doctor.UserId,
-                DepartmentName = doctor.Department.Name,
-                doctor.ScheduleId,
-                doctor.FullName,
-                doctor.Phone,
-                doctor.Degree,
-                doctor.Education,
-                DoctorType = doctor.DoctorType.ToString(),
-                Feedbacks = all == true ? feedbacks : feedbacks.Skip(Math.Max(0, doctor.Feedbacks.Count - 3)),
-                FeedbacksCount = doctor.Feedbacks.Count,
-                Gender = doctor.Gender.ToString(),
-                URLImage = Constants.ThisServer + doctor.URLImage,
-                doctor.Schedule.StartWorkingTime,
-                doctor.Schedule.FinishWorkingTime
-            };
+		}
 
-            return Ok(res);
-        }
 
-        // GET: api/Doctors/5/Appointments
-        [Route("{id:int}/Appointments")]
-        [Authorize(Roles = Roles.AllDoctors + "," + Roles.Receptionist)]
-        public IHttpActionResult GetAppointmentList(int id)
-        {
-            Doctor doctor = db.Doctors.FirstOrDefault(x => x.UserId == id);
-            if (doctor == null)
-            {
-                return NotFound();
-            }
-            var res = new
-            {
-                doctor.UserId,
-                doctor.ScheduleId,
-                doctor.Name,
-                doctor.Surname,
-                doctor.Gender,
-                doctor.DateOfBirth,
-                doctor.Address,
-                doctor.Phone,
-                doctor.DepartmentId,
-                doctor.DoctorType,
-                URLImage = Constants.ThisServer + doctor.URLImage,
+		// GET: api/Doctors/5
+		[Route("{id:int}")]
+		public IHttpActionResult GetDoctor(int id, [FromUri] bool all = true)
+		{
+			Doctor doctor = db.Doctors.FirstOrDefault(x => x.UserId == id && x.Active != false);
+			if (doctor == null)
+			{
+				return NotFound();
+			}
 
-                Appointments = db.Appointments.Where(x => x.DoctorId == id && x.State == AppointmentState.Accepted).Select(a => new
-                {
+			var feedbacks = doctor.Feedbacks.Select(x => new
+			{
+				x.Date,
+				x.Description,
+				x.DoctorId,
+				x.FeedbackId,
+				PatientFullName =
+				(x.Patient == null ? "Anonymous" : x.Patient.Name + " " + x.Patient.Surname),
+				PatientURLImage = (x.Patient == null ? Constants.ThisServer + Constants.DefaultPatientImage : Constants.ThisServer + x.Patient.URLImage)
+			});
 
-                    a.AppointmentId,
-                    PatientFullName = a.Patient.Name + " " + a.Patient.Surname,
-                    a.PatientId,
-                    a.Date,
-                    a.Duration,
-                    State = a.State == 0 ? "Unconfirmed" : "Accepted"
-                })
-            };
+			var res = new
+			{
+				doctor.DepartmentId,
+				doctor.UserId,
+				DepartmentName = doctor.Department.Name,
+				doctor.ScheduleId,
+				doctor.FullName,
+				doctor.Phone,
+				doctor.Degree,
+				doctor.Education,
+				DoctorType = doctor.DoctorType.ToString(),
+				Feedbacks = all == true ? feedbacks : feedbacks.Skip(Math.Max(0, doctor.Feedbacks.Count - 3)),
+				FeedbacksCount = doctor.Feedbacks.Count,
+				Gender = doctor.Gender.ToString(),
+				URLImage = Constants.ThisServer + doctor.URLImage,
+				doctor.Schedule.StartWorkingTime,
+				doctor.Schedule.FinishWorkingTime
+			};
 
-            res.Appointments.OrderByDescending(x => x.Date);
-            return Ok(res);
+			return Ok(res);
+		}
 
-        }
+		// GET: api/Doctors/5/Appointments
+		[Route("{id:int}/Appointments")]
+		[Authorize(Roles = Roles.AllDoctors + "," + Roles.Receptionist)]
+		public IHttpActionResult GetAppointmentList(int id)
+		{
+			var doctor = db.Doctors.FirstOrDefault(x => x.UserId == id);
+			if (doctor == null)
+			{
+				return NotFound();
+			}
+			var res = new
+			{
+				doctor.UserId,
+				doctor.ScheduleId,
+				doctor.Name,
+				doctor.Surname,
+				doctor.Gender,
+				doctor.DateOfBirth,
+				doctor.Address,
+				doctor.Phone,
+				doctor.DepartmentId,
+				doctor.DoctorType,
+				URLImage = Constants.ThisServer + doctor.URLImage,
 
-        // PUT: api/Doctors/5
-        [Route("{id:int}")]
-        [ResponseType(typeof(void))]
-        public IHttpActionResult PutDoctor(int id, Doctor doctor)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+				Appointments = db.Appointments.Where(x => x.DoctorId == id && x.State == AppointmentState.Accepted).Select(a => new
+				{
 
-            if (id != doctor.UserId)
-            {
-                return BadRequest();
-            }
+					a.AppointmentId,
+					PatientFullName = a.Patient.Name + " " + a.Patient.Surname,
+					a.PatientId,
+					a.Date,
+					a.Duration,
+					State = a.State == 0 ? "Unconfirmed" : "Accepted"
+				})
+			};
 
-            db.Entry(doctor).State = EntityState.Modified;
+			res.Appointments.OrderByDescending(x => x.Date);
+			return Ok(res);
 
-            try
-            {
-                db.SaveChanges();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!DoctorExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+		}
 
-            return StatusCode(HttpStatusCode.NoContent);
-        }
+		// PUT: api/Doctors/5
+		[Route("{id:int}")]
+		[ResponseType(typeof(void))]
+		public IHttpActionResult PutDoctor(int id, Doctor doctor)
+		{
+			if (!ModelState.IsValid)
+			{
+				return BadRequest(ModelState);
+			}
 
-        [HttpPut]
-        [Route("~/api/scheduleUpdate/{id:int}")]
-        [ResponseType(typeof(void))]
-        [Authorize(Roles = Roles.Receptionist)]
-        public IHttpActionResult PutWorkingHours(int id, Schedule schedule)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+			if (id != doctor.UserId)
+			{
+				return BadRequest();
+			}
 
-            if (id != schedule.ScheduleId)
-            {
-                return BadRequest();
-            }
+			db.Entry(doctor).State = EntityState.Modified;
 
-            db.Entry(schedule).State = EntityState.Modified;
+			try
+			{
+				db.SaveChanges();
+			}
+			catch (DbUpdateConcurrencyException)
+			{
+				if (!DoctorExists(id))
+				{
+					return NotFound();
+				}
+				else
+				{
+					throw;
+				}
+			}
 
-            try
-            {
-                db.SaveChanges();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!DoctorExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+			return StatusCode(HttpStatusCode.NoContent);
+		}
 
-            return StatusCode(HttpStatusCode.NoContent);
-        }
+		[HttpPut]
+		[Route("~/api/scheduleUpdate/{id:int}")]
+		[ResponseType(typeof(void))]
+		[Authorize(Roles = Roles.Receptionist)]
+		public IHttpActionResult PutWorkingHours(int id, Schedule schedule)
+		{
+			if (!ModelState.IsValid)
+			{
+				return BadRequest(ModelState);
+			}
 
-        [Route("")]
-        // POST: api/Doctors
-        [ResponseType(typeof(Doctor))]
-        public IHttpActionResult PostDoctor(Doctor doctor)
-        {
-            if (!ModelState.IsValid || (db.Users.FirstOrDefault(x => x.Email == doctor.Email) != null))
-            {
-                return BadRequest(ModelState);
-            }
+			if (id != schedule.ScheduleId)
+			{
+				return BadRequest();
+			}
 
-            Schedule schedule = new Schedule()
-            {
-                StartWorkingTime = TimeSpan.FromHours(0),
-                FinishWorkingTime = TimeSpan.FromHours(0)
+			db.Entry(schedule).State = EntityState.Modified;
 
-            };
-            try
-            {
+			try
+			{
+				db.SaveChanges();
+			}
+			catch (DbUpdateConcurrencyException)
+			{
+				if (!DoctorExists(id))
+				{
+					return NotFound();
+				}
+			}
 
-                db.Schedules.Add(schedule);
-                db.SaveChanges();
+			return StatusCode(HttpStatusCode.NoContent);
+		}
 
-                doctor.ScheduleId = schedule.ScheduleId;
+		[Route("")]
+		// POST: api/Doctors
+		[ResponseType(typeof(Doctor))]
+		public IHttpActionResult PostDoctor(Doctor doctor)
+		{
+			if (!ModelState.IsValid || (db.Users.FirstOrDefault(x => x.Email == doctor.Email) != null))
+			{
+				return BadRequest(ModelState);
+			}
 
-                var type = doctor.EmployeeType.ToString();
+			Schedule schedule = new Schedule()
+			{
+				StartWorkingTime = TimeSpan.FromHours(0),
+				FinishWorkingTime = TimeSpan.FromHours(0)
 
-                doctor.UserClaim = db.UserClaims.FirstOrDefault(x => x.ClaimValue == type);
+			};
+			try
+			{
 
-                doctor.EmploymentDate = DateTime.Now;
+				db.Schedules.Add(schedule);
+				db.SaveChanges();
 
-                doctor.URLImage = Constants.DefaultDoctorImage;
+				doctor.ScheduleId = schedule.ScheduleId;
 
-                db.Doctors.Add(doctor);
+				var type = doctor.EmployeeType.ToString();
 
-                db.SaveChanges();
-            }
-            catch (DbUpdateConcurrencyException ex)
-            {
-                return InternalServerError(ex);
-            }
+				doctor.UserClaim = db.UserClaims.FirstOrDefault(x => x.ClaimValue == type);
 
-            return Ok();
-        }
-        // PATCH: 
-        [Route("{id:int}")]
-        public IHttpActionResult PatchActiveState(int id, JsonPatchDocument<Doctor> patchData)
-        {
-            var doctor = db.Doctors.Find(id);
+				doctor.EmploymentDate = DateTime.Now;
 
-            patchData.ApplyTo(doctor);
+				doctor.URLImage = Constants.DefaultDoctorImage;
 
-            if (doctor.DoctorType == DoctorType.HeadDepartment)
-            {
-                var headDoc = db.Doctors.Where(x => (x.DepartmentId == doctor.DepartmentId && x.DoctorType == DoctorType.HeadDepartment)).FirstOrDefault();
-                if (headDoc != null && headDoc.UserId != doctor.UserId)
-                {
-                    return BadRequest("Department head is already exists");
-                }
-            }
+				db.Doctors.Add(doctor);
 
-            try
-            {
-                db.SaveChanges();
-            }
-            catch (DbEntityValidationException e)
-            {
-                string s = "";
-                foreach (var eve in e.EntityValidationErrors)
-                {
-                    s += String.Format("Entity of type \"{0}\" in state \"{1}\" has the following validation errors:",
-                         eve.Entry.Entity.GetType().Name, eve.Entry.State);
-                    foreach (var ve in eve.ValidationErrors)
-                    {
-                        s += String.Format("- Property: \"{0}\", Error: \"{1}\"",
-                            ve.PropertyName, ve.ErrorMessage);
-                    }
-                }
+				db.SaveChanges();
+			}
+			catch (DbUpdateConcurrencyException ex)
+			{
+				return InternalServerError(ex);
+			}
 
-                return BadRequest(s);
-            }
-            catch (Exception ex)
-            {
-                return InternalServerError();
-            }
-            return Ok();
+			return Ok();
+		}
+		// PATCH: 
+		[Route("{id:int}")]
+		public IHttpActionResult PatchActiveState(int id, JsonPatchDocument<Doctor> patchData)
+		{
+			var doctor = db.Doctors.Find(id);
 
-        }
+			patchData.ApplyTo(doctor);
 
-        /*  // DELETE: api/Doctors/5
-           [ResponseType(typeof(Doctor))]
-           public IHttpActionResult DeleteDoctor(int id)
-           {
-               Doctor doctor = db.Doctors.FirstOrDefault(x => x.UserId == id);
-               if (doctor == null)
-               {
-                   return NotFound();
-               }
+			if (doctor.DoctorType == DoctorType.HeadDepartment)
+			{
+				var headDoc = db.Doctors.Where(x => (x.DepartmentId == doctor.DepartmentId && x.DoctorType == DoctorType.HeadDepartment)).FirstOrDefault();
+				if (headDoc != null && headDoc.UserId != doctor.UserId)
+				{
+					return BadRequest("Department head is already exists");
+				}
+			}
 
-               db.Users.Remove(doctor);
-               db.SaveChanges();
+			try
+			{
+				db.SaveChanges();
+			}
+			catch (DbEntityValidationException e)
+			{
+				string s = "";
+				foreach (var eve in e.EntityValidationErrors)
+				{
+					s += String.Format("Entity of type \"{0}\" in state \"{1}\" has the following validation errors:",
+						 eve.Entry.Entity.GetType().Name, eve.Entry.State);
+					foreach (var ve in eve.ValidationErrors)
+					{
+						s += String.Format("- Property: \"{0}\", Error: \"{1}\"",
+							ve.PropertyName, ve.ErrorMessage);
+					}
+				}
 
-               return Ok(doctor);
-           }*/
+				return BadRequest(s);
+			}
+			catch (Exception ex)
+			{
+				return InternalServerError();
+			}
+			return Ok();
 
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                db.Dispose();
-            }
-            base.Dispose(disposing);
-        }
+		}
 
-        private bool DoctorExists(int id)
-        {
-            return db.Users.Count(e => e.UserId == id) > 0;
-        }
-    }
+		protected override void Dispose(bool disposing)
+		{
+			if (disposing)
+			{
+				db.Dispose();
+			}
+			base.Dispose(disposing);
+		}
+
+		private bool DoctorExists(int id)
+		{
+			return db.Users.Count(e => e.UserId == id) > 0;
+		}
+	}
 }
